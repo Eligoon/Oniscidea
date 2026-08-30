@@ -1,0 +1,95 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+Class Main {
+ + main(String[] args)
+ }
+
+ Class User {
+ - id
+ - name
+ - email
+ - passwordHash
+ }
+
+ Class Profile {
+- id
+- name
+- user
+ }
+
+ Class TrainingCalendar {
+ - id
+ - name
+ - profile
+ }
+
+ Class TrainingProgram {
+ - id
+ - name
+ - description
+ }
+
+ Class TrainingSession {
+ - id
+ - date
+ - completed
+ - completedAt
+ - calendar
+ - trainingProgram
+ }
+
+ Class BodyPart {
+ - id
+ - name
+ - color
+ }
+
+ Class Exercise {
+ - id
+ - name
+ - description
+ }
+
+ Class TrainingProgramExercise {
+ - id
+ - trainingProgram
+ - exercise
+ - orderIndex
+ - plannedSets
+ - plannedReps
+ - plannedWeight
+ - notes
+ }
+
+ Class TrainingNote {
+ - id
+ - text
+ - trainingSession
+ }
+
+ Class Note {
+ - id
+ - title
+ - text
+ - profile
+ }
+
+ Class ExerciseLog {
+ - id
+ - trainingSession
+ - exercise
+ - notes
+ }
+
+ Class SetLog {
+ - id
+ - exerciseLog
+ - setNumber
+ - weight
+ - reps
+ - rir
+ - completed
+ }
+
+@enduml
