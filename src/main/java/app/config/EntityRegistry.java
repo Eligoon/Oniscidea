@@ -20,5 +20,6 @@ final class EntityRegistry {
         configuration.addAnnotatedClass(ExerciseLog.class);
         configuration.addAnnotatedClass(SetLog.class);
         configuration.addAnnotatedClass(Note.class);
+        configuration.addAnnotatedClass(GoogleCalendarConnection.class);
     }
 }
