@@ -3,6 +3,7 @@ package app.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String passwordHash;
+    private String password;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -57,10 +58,14 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 
-    public User(String name, String email, String passwordHash) {
+    public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
-        this.passwordHash = passwordHash;
+        this.password = BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+
+    public boolean verifyPassword(String password) {
+        return BCrypt.checkpw(password, this.password);
     }
 
     @Override
@@ -71,11 +76,13 @@ public class User {
             return false;
 
         Class<?> oEffectiveClass = o instanceof HibernateProxy
-                ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass()
+                ? o instanceof HibernateProxy
+                ? o.getClass()
+                : o.getClass()
                 : o.getClass();
 
         Class<?> thisEffectiveClass = this instanceof HibernateProxy
-                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass()
+                ? this.getClass()
                 : this.getClass();
 
         if (thisEffectiveClass != oEffectiveClass)
@@ -88,8 +95,7 @@ public class User {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy
-                ? ((HibernateProxy) this).getHibernateLazyInitializer()
-                .getPersistentClass().hashCode()
+                ? this.getClass().hashCode()
                 : getClass().hashCode();
     }
 }

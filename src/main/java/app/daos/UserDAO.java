@@ -52,6 +52,86 @@ public class UserDAO implements IDAO<User, Integer> {
         return user;
     }
 
+    /*
+     * Used when registering a new user.
+     *
+     * The User constructor hashes the password with BCrypt,
+     * so the plain password never gets stored in the database.
+     */
+    public User createUser(String name, String email, String password) {
+
+        if (name == null || name.isBlank()) {
+            throw new ApiException(400, "Name is required");
+        }
+
+        if (email == null || email.isBlank()) {
+            throw new ApiException(400, "Email is required");
+        }
+
+        if (password == null || password.isBlank()) {
+            throw new ApiException(400, "Password is required");
+        }
+
+        User user = new User(name, email, password);
+
+        return create(user);
+    }
+
+    /*
+     * Used when logging in.
+     *
+     * First finds the user by email.
+     * Then User.verifyPassword() checks the password using BCrypt.
+     */
+    public User getVerifiedUser(String email, String password) {
+
+        if (email == null || email.isBlank()) {
+            throw new ApiException(400, "Email is required");
+        }
+
+        if (password == null || password.isBlank()) {
+            throw new ApiException(400, "Password is required");
+        }
+
+        try (EntityManager em = emf.createEntityManager()) {
+
+            try {
+                TypedQuery<User> query = em.createQuery(
+                        "SELECT u FROM User u WHERE u.email = :email",
+                        User.class
+                );
+
+                query.setParameter("email", email);
+
+                List<User> users = query.getResultList();
+
+                if (users.isEmpty()) {
+                    throw new ApiException(
+                            401,
+                            "Invalid email or password"
+                    );
+                }
+
+                User user = users.get(0);
+
+                if (!user.verifyPassword(password)) {
+                    throw new ApiException(
+                            401,
+                            "Invalid email or password"
+                    );
+                }
+
+                return user;
+
+            } catch (PersistenceException e) {
+                throw new ApiException(
+                        500,
+                        "Verify user failed: " + e.getMessage()
+                );
+            }
+        }
+    }
+
     @Override
     public User getById(Integer id) {
         if (id == null) {
