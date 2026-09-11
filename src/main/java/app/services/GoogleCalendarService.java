@@ -19,7 +19,7 @@ import java.util.Date;
 public class GoogleCalendarService {
 
     private static final String APPLICATION_NAME =
-            "Training Calendar";
+            "TrainingProject";
 
     private final GoogleCalendarConnectionDAO connectionDAO;
 
