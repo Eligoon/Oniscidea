@@ -1,16 +1,13 @@
 package app.daos;
 
 import app.entities.GoogleCalendarConnection;
-import app.entities.Note;
 import app.exceptions.ApiException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
-import jakarta.persistence.TypedQuery;
 
-import java.util.List;
-
-public class GoogleCalendarConnectionDAO implements IDAO<GoogleCalendarConnection, Integer> {
+public class GoogleCalendarConnectionDAO
+        implements IDAO<GoogleCalendarConnection, Integer> {
 
     private final EntityManagerFactory emf;
 
@@ -20,206 +17,237 @@ public class GoogleCalendarConnectionDAO implements IDAO<GoogleCalendarConnectio
 
     @Override
     public GoogleCalendarConnection create(GoogleCalendarConnection connection) {
+
         if (connection == null) {
-            throw new ApiException(400, "Calendar connection is required");
+            throw new ApiException(400, "Google Calendar connection cannot be null");
         }
 
-        try (EntityManager em = emf.createEntityManager()) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
             em.getTransaction().begin();
 
-            try {
-                em.persist(connection);
-                em.getTransaction().commit();
+            em.persist(connection);
 
-            } catch (PersistenceException e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
+            em.getTransaction().commit();
 
-                throw new ApiException(
-                        500,
-                        "Create calendar connection failed: " + e.getMessage()
-                );
+            return connection;
 
-            } catch (RuntimeException e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
+        } catch (RuntimeException e) {
 
-                throw e;
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
             }
+
+            throw new ApiException(
+                    500,
+                    "Could not create Google Calendar connection"
+            );
+
+        } finally {
+            em.close();
         }
-
-        return connection;
     }
-
 
     @Override
     public GoogleCalendarConnection getById(Integer id) {
+
         if (id == null) {
-            throw new ApiException(400, "Calendar connection id is required");
+            throw new ApiException(400, "Google Calendar connection ID cannot be null");
         }
 
-        try (EntityManager em = emf.createEntityManager()) {
-            try {
-                GoogleCalendarConnection connection = em.find(GoogleCalendarConnection.class, id);
+        EntityManager em = emf.createEntityManager();
 
-                if (connection != null) {
-                    return connection;
-                }
+        try {
 
-                throw new ApiException(404, "Calendar connection not found");
+            GoogleCalendarConnection connection =
+                    em.find(GoogleCalendarConnection.class, id);
 
-            } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get calendar connection failed: " + e.getMessage()
-                );
-            }
-        }
-    }
-
-    @Override
-    public List<GoogleCalendarConnection> getAll() {
-        try (EntityManager em = emf.createEntityManager()) {
-            try {
-                TypedQuery<GoogleCalendarConnection> query =
-                        em.createQuery(
-                                "SELECT n FROM Note n",
-                                GoogleCalendarConnection.class
-                        );
-
-                return query.getResultList();
-
-            } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get calendar connections failed: " + e.getMessage()
-                );
-            }
-        }
-    }
-
-
-    @Override
-    public GoogleCalendarConnection update(GoogleCalendarConnection connection) {
-        if (connection == null || connection.getId() == null) {
-            throw new ApiException(400, "Calendar connection id is required");
-        }
-
-        GoogleCalendarConnection updated;
-
-        try (EntityManager em = emf.createEntityManager()) {
-            em.getTransaction().begin();
-
-            try {
-                GoogleCalendarConnection existing =
-                        em.find(GoogleCalendarConnection.class, connection.getId());
-
-                if (existing == null) {
-                    throw new ApiException(404, "Calendar connection not found");
-                }
-
-                updated = em.merge(connection);
-                em.getTransaction().commit();
-
-            } catch (PersistenceException e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
-
-                throw new ApiException(
-                        500,
-                        "Update calendar connection failed: " + e.getMessage()
-                );
-
-            } catch (RuntimeException e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
-
-                throw e;
-            }
-        }
-
-        return updated;
-    }
-
-    @Override
-    public boolean delete(Integer id) {
-        if (id == null) {
-            throw new ApiException(400, "Calendar connection id is required");
-        }
-
-        try (EntityManager em = emf.createEntityManager()) {
-            em.getTransaction().begin();
-
-            try {
-                GoogleCalendarConnection connection = em.find(GoogleCalendarConnection.class, id);
-
-                if (connection == null) {
-                    throw new ApiException(404, "Calendar connection not found");
-                }
-
-                em.remove(connection);
-                em.getTransaction().commit();
-
-            } catch (PersistenceException e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
-
-                throw new ApiException(
-                        500,
-                        "Delete calendar connection failed: " + e.getMessage()
-                );
-
-            } catch (RuntimeException e) {
-                if (em.getTransaction().isActive()) {
-                    em.getTransaction().rollback();
-                }
-
-                throw e;
-            }
-        }
-
-        return true;
-    }
-
-
-    public GoogleCalendarConnection getByUserId(Integer userId) {
-        if (userId == null) {
-            throw new ApiException(400, "User ID cannot be null");
-        }
-
-        try (EntityManager em = emf.createEntityManager()) {
-
-            TypedQuery<GoogleCalendarConnection> query =
-                    em.createQuery(
-                            "SELECT g FROM GoogleCalendarConnection g " +
-                                    "WHERE g.user.id = :userId " +
-                                    "AND g.deletedAt IS NULL",
-                            GoogleCalendarConnection.class
-                    );
-
-            query.setParameter("userId", userId);
-
-            List<GoogleCalendarConnection> results = query.getResultList();
-
-            if (results.isEmpty()) {
+            if (connection == null) {
                 throw new ApiException(
                         404,
                         "Google Calendar connection not found"
                 );
             }
 
-            return results.get(0);
+            return connection;
 
-        } catch (PersistenceException ex) {
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public java.util.List<GoogleCalendarConnection> getAll() {
+
+        EntityManager em = emf.createEntityManager();
+
+        try {
+
+            return em.createQuery(
+                    "SELECT g FROM GoogleCalendarConnection g",
+                    GoogleCalendarConnection.class
+            ).getResultList();
+
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public GoogleCalendarConnection update(
+            GoogleCalendarConnection connection
+    ) {
+
+        if (connection == null || connection.getId() == null) {
+            throw new ApiException(
+                    400,
+                    "Google Calendar connection and ID are required"
+            );
+        }
+
+        EntityManager em = emf.createEntityManager();
+
+        try {
+
+            em.getTransaction().begin();
+
+            GoogleCalendarConnection existing =
+                    em.find(
+                            GoogleCalendarConnection.class,
+                            connection.getId()
+                    );
+
+            if (existing == null) {
+                throw new ApiException(
+                        404,
+                        "Google Calendar connection not found"
+                );
+            }
+
+            GoogleCalendarConnection updated =
+                    em.merge(connection);
+
+            em.getTransaction().commit();
+
+            return updated;
+
+        } catch (ApiException e) {
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            throw e;
+
+        } catch (RuntimeException e) {
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
             throw new ApiException(
                     500,
-                    "Could not retrieve Google Calendar connection"
+                    "Could not update Google Calendar connection"
             );
+
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public boolean delete(Integer id) {
+
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Google Calendar connection ID cannot be null"
+            );
+        }
+
+        EntityManager em = emf.createEntityManager();
+
+        try {
+
+            em.getTransaction().begin();
+
+            GoogleCalendarConnection connection =
+                    em.find(
+                            GoogleCalendarConnection.class,
+                            id
+                    );
+
+            if (connection == null) {
+                throw new ApiException(
+                        404,
+                        "Google Calendar connection not found"
+                );
+            }
+
+            em.remove(connection);
+
+            em.getTransaction().commit();
+
+            return true;
+
+        } catch (ApiException e) {
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            throw e;
+
+        } catch (RuntimeException e) {
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            throw new ApiException(
+                    500,
+                    "Could not delete Google Calendar connection"
+            );
+
+        } finally {
+            em.close();
+        }
+    }
+
+    public GoogleCalendarConnection getByUserId(Integer userId) {
+
+        if (userId == null) {
+            throw new ApiException(400, "User ID cannot be null");
+        }
+
+        EntityManager em = emf.createEntityManager();
+
+        try {
+
+            java.util.List<GoogleCalendarConnection> connections =
+                    em.createQuery(
+                                    """
+                                    SELECT g
+                                    FROM GoogleCalendarConnection g
+                                    WHERE g.user.id = :userId
+                                    """,
+                                    GoogleCalendarConnection.class
+                            )
+                            .setParameter("userId", userId)
+                            .getResultList();
+
+            if (connections.isEmpty()) {
+                throw new ApiException(
+                        404,
+                        "Google Calendar connection not found"
+                );
+            }
+
+            return connections.get(0);
+
+        } finally {
+            em.close();
         }
     }
 }

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Getter
@@ -21,47 +21,58 @@ public class GoogleCalendarConnection {
     private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @ToString.Exclude
     private User user;
 
+    @Column(nullable = false)
     private String googleUserId;
 
-    @Column(length = 4000)
+    @Column(nullable = false, length = 4000)
     private String accessToken;
 
-    @Column(length = 4000)
+    @Column(nullable = false, length = 4000)
     private String refreshToken;
 
-    private LocalDateTime tokenExpiresAt;
+    private String calendarId;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
+    private LocalDate createdAt;
+    private LocalDate updatedAt;
 
     @PrePersist
     private void beforeCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        deletedAt = null;
+        createdAt = LocalDate.now();
+        updatedAt = LocalDate.now();
     }
 
     @PreUpdate
     private void beforeUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = LocalDate.now();
     }
 
     public GoogleCalendarConnection(
             User user,
             String googleUserId,
             String accessToken,
-            String refreshToken,
-            LocalDateTime tokenExpiresAt
+            String refreshToken
     ) {
         this.user = user;
         this.googleUserId = googleUserId;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.tokenExpiresAt = tokenExpiresAt;
+        this.calendarId = "primary";
+    }
+
+    public void updateTokens(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            this.refreshToken = refreshToken;
+        }
+    }
+
+    public void setCalendarId(String calendarId) {
+        this.calendarId = calendarId;
     }
 
     @Override
@@ -78,7 +89,7 @@ public class GoogleCalendarConnection {
 
         Class<?> thisEffectiveClass = this instanceof HibernateProxy
                 ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass()
-                : this.getClass();
+                : getClass();
 
         if (thisEffectiveClass != oEffectiveClass)
             return false;
@@ -92,7 +103,7 @@ public class GoogleCalendarConnection {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy
-                ? this.getClass().hashCode()
+                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode()
                 : getClass().hashCode();
     }
 }
