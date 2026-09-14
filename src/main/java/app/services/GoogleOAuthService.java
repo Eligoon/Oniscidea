@@ -5,8 +5,11 @@ import app.daos.UserDAO;
 import app.entities.GoogleCalendarConnection;
 import app.entities.User;
 import app.exceptions.ApiException;
+import app.utils.Utils;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.BearerToken;
+import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -20,13 +23,22 @@ import java.util.Collections;
 public class GoogleOAuthService {
 
     private static final String CLIENT_ID =
-            System.getenv("GOOGLE_CLIENT_ID");
+            Utils.getPropertyValue(
+                    "GOOGLE_CLIENT_ID",
+                    "config.properties"
+            );
 
     private static final String CLIENT_SECRET =
-            System.getenv("GOOGLE_CLIENT_SECRET");
+            Utils.getPropertyValue(
+                    "GOOGLE_CLIENT_SECRET",
+                    "config.properties"
+            );
 
     private static final String REDIRECT_URI =
-            "http://localhost:7070/api/google-calendar/callback";
+            Utils.getPropertyValue(
+                    "GOOGLE_REDIRECT_URI",
+                    "config.properties"
+            );
 
     private static final String CALENDAR_SCOPE =
             "https://www.googleapis.com/auth/calendar";
@@ -68,11 +80,17 @@ public class GoogleOAuthService {
     ) {
 
         if (userId == null) {
-            throw new ApiException(401, "User must be logged in");
+            throw new ApiException(
+                    401,
+                    "User must be logged in"
+            );
         }
 
         if (state == null || state.isBlank()) {
-            throw new ApiException(400, "OAuth state is required");
+            throw new ApiException(
+                    400,
+                    "OAuth state is required"
+            );
         }
 
         // Make sure the application user exists
@@ -91,7 +109,10 @@ public class GoogleOAuthService {
     ) {
 
         if (userId == null) {
-            throw new ApiException(401, "User must be logged in");
+            throw new ApiException(
+                    401,
+                    "User must be logged in"
+            );
         }
 
         if (code == null || code.isBlank()) {
@@ -101,6 +122,7 @@ public class GoogleOAuthService {
             );
         }
 
+        // Make sure the application user exists
         User user = userDAO.getById(userId);
 
         try {
@@ -115,9 +137,7 @@ public class GoogleOAuthService {
 
             Credential credential =
                     new Credential.Builder(
-                            com.google.api.client.auth.oauth2
-                                    .BearerToken
-                                    .authorizationHeaderAccessMethod()
+                            BearerToken.authorizationHeaderAccessMethod()
                     )
                             .setTransport(HTTP_TRANSPORT)
                             .setJsonFactory(JSON_FACTORY)
@@ -125,8 +145,7 @@ public class GoogleOAuthService {
                                     "https://oauth2.googleapis.com/token"
                             )
                             .setClientAuthentication(
-                                    new com.google.api.client.auth.oauth2
-                                            .ClientParametersAuthentication(
+                                    new ClientParametersAuthentication(
                                             CLIENT_ID,
                                             CLIENT_SECRET
                                     )
