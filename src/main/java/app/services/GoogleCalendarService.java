@@ -3,16 +3,18 @@ package app.services;
 import app.daos.GoogleCalendarConnectionDAO;
 import app.entities.GoogleCalendarConnection;
 import app.exceptions.ApiException;
+import app.utils.Utils;
 
+import com.google.api.client.auth.oauth2.BearerToken;
+import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
+import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
 import java.io.IOException;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
@@ -20,6 +22,18 @@ public class GoogleCalendarService {
 
     private static final String APPLICATION_NAME =
             "TrainingProject";
+
+    private static final String CLIENT_ID =
+            Utils.getPropertyValue(
+                    "GOOGLE_CLIENT_ID",
+                    "config.properties"
+            );
+
+    private static final String CLIENT_SECRET =
+            Utils.getPropertyValue(
+                    "GOOGLE_CLIENT_SECRET",
+                    "config.properties"
+            );
 
     private final GoogleCalendarConnectionDAO connectionDAO;
 
@@ -29,15 +43,38 @@ public class GoogleCalendarService {
         this.connectionDAO = connectionDAO;
     }
 
-    private Calendar getCalendar(Integer userId) {
+    private GoogleCalendarConnection getConnection(Integer userId) {
+
+        if (userId == null) {
+            throw new ApiException(
+                    401,
+                    "User must be logged in"
+            );
+        }
+
+        GoogleCalendarConnection connection =
+                connectionDAO.getByUserId(userId);
+
+        if (connection == null) {
+            throw new ApiException(
+                    400,
+                    "Google Calendar is not connected"
+            );
+        }
+
+        return connection;
+    }
+
+    private Calendar getCalendar(
+            GoogleCalendarConnection connection
+    ) {
 
         try {
 
-            GoogleCalendarConnection connection =
-                    connectionDAO.getByUserId(userId);
-
-            GoogleCredential credential =
-                    new GoogleCredential.Builder()
+            Credential credential =
+                    new Credential.Builder(
+                            BearerToken.authorizationHeaderAccessMethod()
+                    )
                             .setTransport(
                                     GoogleNetHttpTransport
                                             .newTrustedTransport()
@@ -45,9 +82,14 @@ public class GoogleCalendarService {
                             .setJsonFactory(
                                     GsonFactory.getDefaultInstance()
                             )
-                            .setClientSecrets(
-                                    System.getenv("GOOGLE_CLIENT_ID"),
-                                    System.getenv("GOOGLE_CLIENT_SECRET")
+                            .setTokenServerEncodedUrl(
+                                    "https://oauth2.googleapis.com/token"
+                            )
+                            .setClientAuthentication(
+                                    new ClientParametersAuthentication(
+                                            CLIENT_ID,
+                                            CLIENT_SECRET
+                                    )
                             )
                             .build()
                             .setAccessToken(
@@ -82,12 +124,11 @@ public class GoogleCalendarService {
             ZonedDateTime end
     ) {
 
-        if (userId == null) {
-            throw new ApiException(401, "User must be logged in");
-        }
-
         if (title == null || title.isBlank()) {
-            throw new ApiException(400, "Event title is required");
+            throw new ApiException(
+                    400,
+                    "Event title is required"
+            );
         }
 
         if (start == null || end == null) {
@@ -97,49 +138,38 @@ public class GoogleCalendarService {
             );
         }
 
+        if (!end.isAfter(start)) {
+            throw new ApiException(
+                    400,
+                    "Event end must be after event start"
+            );
+        }
+
+        GoogleCalendarConnection connection =
+                getConnection(userId);
+
         try {
 
             Calendar calendar =
-                    getCalendar(userId);
+                    getCalendar(connection);
 
             Event event =
                     new Event()
                             .setSummary(title)
                             .setDescription(description);
 
-            EventDateTime startDateTime =
-                    new EventDateTime()
-                            .setDateTime(
-                                    new com.google.api.client.util.DateTime(
-                                            Date.from(
-                                                    start.toInstant()
-                                            )
-                                    )
-                            )
-                            .setTimeZone(
-                                    start.getZone().getId()
-                            );
+            event.setStart(
+                    toEventDateTime(start)
+            );
 
-            EventDateTime endDateTime =
-                    new EventDateTime()
-                            .setDateTime(
-                                    new com.google.api.client.util.DateTime(
-                                            Date.from(
-                                                    end.toInstant()
-                                            )
-                                    )
-                            )
-                            .setTimeZone(
-                                    end.getZone().getId()
-                            );
-
-            event.setStart(startDateTime);
-            event.setEnd(endDateTime);
+            event.setEnd(
+                    toEventDateTime(end)
+            );
 
             Event createdEvent =
                     calendar.events()
                             .insert(
-                                    "primary",
+                                    connection.getCalendarId(),
                                     event
                             )
                             .execute();
@@ -171,50 +201,51 @@ public class GoogleCalendarService {
             );
         }
 
+        if (title == null || title.isBlank()) {
+            throw new ApiException(
+                    400,
+                    "Event title is required"
+            );
+        }
+
+        if (start == null || end == null) {
+            throw new ApiException(
+                    400,
+                    "Event start and end are required"
+            );
+        }
+
+        if (!end.isAfter(start)) {
+            throw new ApiException(
+                    400,
+                    "Event end must be after event start"
+            );
+        }
+
+        GoogleCalendarConnection connection =
+                getConnection(userId);
+
         try {
 
             Calendar calendar =
-                    getCalendar(userId);
+                    getCalendar(connection);
 
             Event event =
                     calendar.events()
-                            .get("primary", eventId)
+                            .get(
+                                    connection.getCalendarId(),
+                                    eventId
+                            )
                             .execute();
 
             event.setSummary(title);
             event.setDescription(description);
-
-            event.setStart(
-                    new EventDateTime()
-                            .setDateTime(
-                                    new com.google.api.client.util.DateTime(
-                                            Date.from(
-                                                    start.toInstant()
-                                            )
-                                    )
-                            )
-                            .setTimeZone(
-                                    start.getZone().getId()
-                            )
-            );
-
-            event.setEnd(
-                    new EventDateTime()
-                            .setDateTime(
-                                    new com.google.api.client.util.DateTime(
-                                            Date.from(
-                                                    end.toInstant()
-                                            )
-                                    )
-                            )
-                            .setTimeZone(
-                                    end.getZone().getId()
-                            )
-            );
+            event.setStart(toEventDateTime(start));
+            event.setEnd(toEventDateTime(end));
 
             calendar.events()
                     .update(
-                            "primary",
+                            connection.getCalendarId(),
                             eventId,
                             event
                     )
@@ -238,14 +269,17 @@ public class GoogleCalendarService {
             return;
         }
 
+        GoogleCalendarConnection connection =
+                getConnection(userId);
+
         try {
 
             Calendar calendar =
-                    getCalendar(userId);
+                    getCalendar(connection);
 
             calendar.events()
                     .delete(
-                            "primary",
+                            connection.getCalendarId(),
                             eventId
                     )
                     .execute();
@@ -257,5 +291,22 @@ public class GoogleCalendarService {
                     "Could not delete Google Calendar event"
             );
         }
+    }
+
+    private EventDateTime toEventDateTime(
+            ZonedDateTime dateTime
+    ) {
+
+        return new EventDateTime()
+                .setDateTime(
+                        new com.google.api.client.util.DateTime(
+                                Date.from(
+                                        dateTime.toInstant()
+                                )
+                        )
+                )
+                .setTimeZone(
+                        dateTime.getZone().getId()
+                );
     }
 }
