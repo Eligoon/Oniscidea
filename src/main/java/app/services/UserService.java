@@ -127,6 +127,18 @@ public class UserService {
         return toDTO(updatedUser);
     }
 
+    public void deleteUser(Integer id) {
+
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "User id is required"
+            );
+        }
+
+        userDAO.delete(id);
+    }
+
     public UserDTO login(
             String email,
             String password
