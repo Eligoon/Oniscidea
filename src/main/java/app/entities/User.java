@@ -68,6 +68,19 @@ public class User {
         return BCrypt.checkpw(password, this.password);
     }
 
+    public void update(
+            String name,
+            String email,
+            String password
+    ) {
+        this.name = name;
+        this.email = email;
+        this.password = BCrypt.hashpw(
+                password,
+                BCrypt.gensalt()
+        );
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o)
