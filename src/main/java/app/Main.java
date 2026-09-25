@@ -74,6 +74,11 @@ public class Main {
                             userController::update
                     );
 
+                    config.routes.delete(
+                            "/api/users/{id}",
+                            userController::delete
+                    );
+
 
                 }).start(7070);
         }
