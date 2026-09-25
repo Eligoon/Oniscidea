@@ -49,4 +49,25 @@ public class UserController {
 
         ctx.json(users);
     }
+
+    public void update(Context ctx) {
+
+        Integer id =
+                Integer.parseInt(
+                        ctx.pathParam("id")
+                );
+
+        UserDTO request =
+                ctx.bodyAsClass(UserDTO.class);
+
+        UserDTO user =
+                userService.updateUser(
+                        id,
+                        request.getName(),
+                        request.getEmail(),
+                        request.getPassword()
+                );
+
+        ctx.json(user);
+    }
 }
