@@ -14,6 +14,10 @@ import jakarta.persistence.EntityManagerFactory;
 import app.controllers.TrainingProgramController;
 import app.daos.TrainingProgramDAO;
 import app.services.TrainingProgramService;
+import app.controllers.TrainingProgramExerciseController;
+import app.daos.ExerciseDAO;
+import app.daos.TrainingProgramExerciseDAO;
+import app.services.TrainingProgramExerciseService;
 
 public class Main {
 
@@ -58,6 +62,25 @@ public class Main {
         TrainingProgramController trainingProgramController =
                 new TrainingProgramController(
                         trainingProgramService
+                );
+
+        // TrainingProgramExercise
+        TrainingProgramExerciseDAO trainingProgramExerciseDAO =
+                new TrainingProgramExerciseDAO(emf);
+
+        ExerciseDAO exerciseDAO =
+                new ExerciseDAO(emf);
+
+        TrainingProgramExerciseService trainingProgramExerciseService =
+                new TrainingProgramExerciseService(
+                        trainingProgramExerciseDAO,
+                        trainingProgramDAO,
+                        exerciseDAO
+                );
+
+        TrainingProgramExerciseController trainingProgramExerciseController =
+                new TrainingProgramExerciseController(
+                        trainingProgramExerciseService
                 );
 
         Javalin app =
@@ -168,6 +191,17 @@ public class Main {
                     config.routes.delete(
                             "/api/training-programs/{id}",
                             trainingProgramController::delete
+                    );
+
+                    // Training program exercises routes
+                    config.routes.post(
+                            "/api/training-programs/{id}/exercises",
+                            trainingProgramExerciseController::addExercise
+                    );
+
+                    config.routes.delete(
+                            "/api/training-programs/{id}/exercises/{exerciseId}",
+                            trainingProgramExerciseController::deleteExercise
                     );
 
                 }).start(7070);
