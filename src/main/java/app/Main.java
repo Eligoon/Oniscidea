@@ -11,6 +11,9 @@ import app.services.ProfileService;
 import app.services.UserService;
 import io.javalin.Javalin;
 import jakarta.persistence.EntityManagerFactory;
+import app.controllers.TrainingProgramController;
+import app.daos.TrainingProgramDAO;
+import app.services.TrainingProgramService;
 
 public class Main {
 
@@ -41,6 +44,21 @@ public class Main {
 
         ProfileController profileController =
                 new ProfileController(profileService);
+
+        // TrainingProgram
+        TrainingProgramDAO trainingProgramDAO =
+                new TrainingProgramDAO(emf);
+
+        TrainingProgramService trainingProgramService =
+                new TrainingProgramService(
+                        trainingProgramDAO,
+                        profileDAO
+                );
+
+        TrainingProgramController trainingProgramController =
+                new TrainingProgramController(
+                        trainingProgramService
+                );
 
         Javalin app =
                 Javalin.create(config -> {
@@ -123,6 +141,33 @@ public class Main {
                     config.routes.delete(
                             "/api/profiles/{id}",
                             profileController::delete
+                    );
+
+                    // TrainingProgram routes
+
+                    config.routes.post(
+                            "/api/training-programs",
+                            trainingProgramController::create
+                    );
+
+                    config.routes.get(
+                            "/api/training-programs",
+                            trainingProgramController::getAll
+                    );
+
+                    config.routes.get(
+                            "/api/training-programs/{id}",
+                            trainingProgramController::getById
+                    );
+
+                    config.routes.put(
+                            "/api/training-programs/{id}",
+                            trainingProgramController::update
+                    );
+
+                    config.routes.delete(
+                            "/api/training-programs/{id}",
+                            trainingProgramController::delete
                     );
 
                 }).start(7070);
