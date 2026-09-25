@@ -5,7 +5,9 @@ package app;
 import app.config.HibernateConfig;
 import app.controllers.UserController;
 import app.daos.UserDAO;
+import app.dtos.ErrorResponseDTO;
 import app.dtos.UserDTO;
+import app.exceptions.ApiException;
 import app.services.UserService;
 import io.javalin.Javalin;
 import jakarta.persistence.EntityManagerFactory;
@@ -30,6 +32,20 @@ public class Main {
 
         Javalin app =
                 Javalin.create(config -> {
+
+                    config.routes.exception(
+                            ApiException.class,
+                            (e, ctx) -> {
+                                ctx.status(e.getCode());
+
+                                ctx.json(
+                                        new ErrorResponseDTO(
+                                                e.getCode(),
+                                                e.getMessage()
+                                        )
+                                );
+                            }
+                    );
 
                     config.routes.get(
                             "/",
