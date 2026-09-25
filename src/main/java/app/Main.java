@@ -43,6 +43,11 @@ public class Main {
                             userController::create
                     );
 
+                    config.routes.get(
+                            "/api/users/{id}",
+                            userController::getById
+                    );
+
 
                 }).start(7070);
         }
