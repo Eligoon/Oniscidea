@@ -69,6 +69,11 @@ public class Main {
                             userController::getAll
                     );
 
+                    config.routes.put(
+                            "/api/users/{id}",
+                            userController::update
+                    );
+
 
                 }).start(7070);
         }
