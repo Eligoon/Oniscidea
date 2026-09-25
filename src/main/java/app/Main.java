@@ -106,8 +106,23 @@ public class Main {
                     );
 
                     config.routes.get(
+                            "/api/profiles",
+                            profileController::getAll
+                    );
+
+                    config.routes.get(
                             "/api/profiles/{id}",
                             profileController::getById
+                    );
+
+                    config.routes.put(
+                            "/api/profiles/{id}",
+                            profileController::update
+                    );
+
+                    config.routes.delete(
+                            "/api/profiles/{id}",
+                            profileController::delete
                     );
 
                 }).start(7070);
