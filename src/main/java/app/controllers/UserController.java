@@ -82,4 +82,18 @@ public class UserController {
 
         ctx.status(204);
     }
+
+    public void login(Context ctx) {
+
+        UserDTO request =
+                ctx.bodyAsClass(UserDTO.class);
+
+        UserDTO user =
+                userService.login(
+                        request.getEmail(),
+                        request.getPassword()
+                );
+
+        ctx.json(user);
+    }
 }
