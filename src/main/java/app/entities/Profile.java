@@ -78,6 +78,10 @@ public class Profile {
         this.user = user;
     }
 
+    public void update(String name) {
+        this.name = name;
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o)
