@@ -70,4 +70,16 @@ public class UserController {
 
         ctx.json(user);
     }
+
+    public void delete(Context ctx) {
+
+        Integer id =
+                Integer.parseInt(
+                        ctx.pathParam("id")
+                );
+
+        userService.deleteUser(id);
+
+        ctx.status(204);
+    }
 }
