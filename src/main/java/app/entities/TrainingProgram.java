@@ -63,6 +63,14 @@ public class TrainingProgram {
         this.profile = profile;
     }
 
+    public void update(
+            String name,
+            String description
+    ) {
+        this.name = name;
+        this.description = description;
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o)
