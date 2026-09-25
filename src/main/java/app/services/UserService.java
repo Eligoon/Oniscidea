@@ -77,6 +77,56 @@ public class UserService {
                 .toList();
     }
 
+    public UserDTO updateUser(
+            Integer id,
+            String name,
+            String email,
+            String password
+    ) {
+
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "User id is required"
+            );
+        }
+
+        if (name == null || name.isBlank()) {
+            throw new ApiException(
+                    400,
+                    "Name is required"
+            );
+        }
+
+        if (email == null || email.isBlank()) {
+            throw new ApiException(
+                    400,
+                    "Email is required"
+            );
+        }
+
+        if (password == null || password.isBlank()) {
+            throw new ApiException(
+                    400,
+                    "Password is required"
+            );
+        }
+
+        User user =
+                userDAO.getById(id);
+
+        user.update(
+                name,
+                email,
+                password
+        );
+
+        User updatedUser =
+                userDAO.update(user);
+
+        return toDTO(updatedUser);
+    }
+
     public UserDTO login(
             String email,
             String password
