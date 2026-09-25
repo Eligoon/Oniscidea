@@ -26,4 +26,17 @@ public class UserController {
 
         ctx.status(201).json(user);
     }
+
+    public void getById(Context ctx) {
+
+        Integer id =
+                Integer.parseInt(
+                        ctx.pathParam("id")
+                );
+
+        UserDTO user =
+                userService.getUser(id);
+
+        ctx.json(user);
+    }
 }
