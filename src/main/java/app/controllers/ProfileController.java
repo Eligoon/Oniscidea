@@ -25,4 +25,17 @@ public class ProfileController {
 
         ctx.status(201).json(profile);
     }
+
+    public void getById(Context ctx) {
+
+        Integer id =
+                Integer.parseInt(
+                        ctx.pathParam("id")
+                );
+
+        ProfileDTO profile =
+                profileService.getProfile(id);
+
+        ctx.json(profile);
+    }
 }
