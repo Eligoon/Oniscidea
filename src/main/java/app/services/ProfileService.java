@@ -54,6 +54,21 @@ public class ProfileService {
         return toDTO(created);
     }
 
+    public ProfileDTO getProfile(Integer id) {
+
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Profile id is required"
+            );
+        }
+
+        Profile profile =
+                profileDAO.getById(id);
+
+        return toDTO(profile);
+    }
+
     private ProfileDTO toDTO(Profile profile) {
 
         return new ProfileDTO(
