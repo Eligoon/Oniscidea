@@ -1,28 +1,25 @@
 package app;
 
-
-
 import app.config.HibernateConfig;
+import app.controllers.ProfileController;
 import app.controllers.UserController;
+import app.daos.ProfileDAO;
 import app.daos.UserDAO;
 import app.dtos.ErrorResponseDTO;
 import app.exceptions.ApiException;
+import app.services.ProfileService;
 import app.services.UserService;
 import io.javalin.Javalin;
 import jakarta.persistence.EntityManagerFactory;
-import app.controllers.ProfileController;
-import app.daos.ProfileDAO;
-import app.services.ProfileService;
 
-
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
-    static void main() {
+
+    public static void main(String[] args) {
 
         EntityManagerFactory emf =
                 HibernateConfig.getEntityManagerFactory();
 
+        // User
         UserDAO userDAO =
                 new UserDAO(emf);
 
@@ -32,6 +29,7 @@ public class Main {
         UserController userController =
                 new UserController(userService);
 
+        // Profile
         ProfileDAO profileDAO =
                 new ProfileDAO(emf);
 
@@ -47,6 +45,7 @@ public class Main {
         Javalin app =
                 Javalin.create(config -> {
 
+                    // Error handling
                     config.routes.exception(
                             ApiException.class,
                             (e, ctx) -> {
@@ -61,6 +60,7 @@ public class Main {
                             }
                     );
 
+                    // Home
                     config.routes.get(
                             "/",
                             ctx -> ctx.result(
@@ -68,19 +68,20 @@ public class Main {
                             )
                     );
 
+                    // User routes
                     config.routes.post(
                             "/api/users",
                             userController::create
                     );
 
                     config.routes.get(
-                            "/api/users/{id}",
-                            userController::getById
+                            "/api/users",
+                            userController::getAll
                     );
 
                     config.routes.get(
-                            "/api/users",
-                            userController::getAll
+                            "/api/users/{id}",
+                            userController::getById
                     );
 
                     config.routes.put(
@@ -98,13 +99,17 @@ public class Main {
                             userController::login
                     );
 
+                    // Profile routes
                     config.routes.post(
                             "/api/profiles",
                             profileController::create
                     );
 
+                    config.routes.get(
+                            "/api/profiles/{id}",
+                            profileController::getById
+                    );
 
                 }).start(7070);
-        }
     }
-
+}
