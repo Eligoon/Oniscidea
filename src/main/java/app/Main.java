@@ -6,11 +6,13 @@ import app.config.HibernateConfig;
 import app.controllers.UserController;
 import app.daos.UserDAO;
 import app.dtos.ErrorResponseDTO;
-import app.dtos.UserDTO;
 import app.exceptions.ApiException;
 import app.services.UserService;
 import io.javalin.Javalin;
 import jakarta.persistence.EntityManagerFactory;
+import app.controllers.ProfileController;
+import app.daos.ProfileDAO;
+import app.services.ProfileService;
 
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
@@ -29,6 +31,18 @@ public class Main {
 
         UserController userController =
                 new UserController(userService);
+
+        ProfileDAO profileDAO =
+                new ProfileDAO(emf);
+
+        ProfileService profileService =
+                new ProfileService(
+                        profileDAO,
+                        userDAO
+                );
+
+        ProfileController profileController =
+                new ProfileController(profileService);
 
         Javalin app =
                 Javalin.create(config -> {
@@ -82,6 +96,11 @@ public class Main {
                     config.routes.post(
                             "/api/login",
                             userController::login
+                    );
+
+                    config.routes.post(
+                            "/api/profiles",
+                            profileController::create
                     );
 
 
