@@ -7,6 +7,8 @@ import app.entities.Profile;
 import app.entities.User;
 import app.exceptions.ApiException;
 
+import java.util.List;
+
 public class ProfileService {
 
     private final ProfileDAO profileDAO;
@@ -67,6 +69,58 @@ public class ProfileService {
                 profileDAO.getById(id);
 
         return toDTO(profile);
+    }
+
+    public List<ProfileDTO> getAllProfiles() {
+
+        List<Profile> profiles =
+                profileDAO.getAll();
+
+        return profiles.stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    public ProfileDTO updateProfile(
+            Integer id,
+            String name
+    ) {
+
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Profile id is required"
+            );
+        }
+
+        if (name == null || name.isBlank()) {
+            throw new ApiException(
+                    400,
+                    "Profile name is required"
+            );
+        }
+
+        Profile profile =
+                profileDAO.getById(id);
+
+        profile.update(name);
+
+        Profile updated =
+                profileDAO.update(profile);
+
+        return toDTO(updated);
+    }
+
+    public void deleteProfile(Integer id) {
+
+        if (id == null) {
+            throw new ApiException(
+                    400,
+                    "Profile id is required"
+            );
+        }
+
+        profileDAO.delete(id);
     }
 
     private ProfileDTO toDTO(Profile profile) {
