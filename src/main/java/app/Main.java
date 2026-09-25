@@ -64,6 +64,11 @@ public class Main {
                             userController::getById
                     );
 
+                    config.routes.get(
+                            "/api/users",
+                            userController::getAll
+                    );
+
 
                 }).start(7070);
         }
