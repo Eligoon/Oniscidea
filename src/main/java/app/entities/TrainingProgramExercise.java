@@ -36,6 +36,22 @@ public class TrainingProgramExercise {
     private Integer plannedReps;
     private Integer restSeconds;
 
+    public TrainingProgramExercise(
+            TrainingProgram trainingProgram,
+            Exercise exercise,
+            int orderIndex,
+            Integer plannedSets,
+            Integer plannedReps,
+            Integer restSeconds
+    ) {
+        this.trainingProgram = trainingProgram;
+        this.exercise = exercise;
+        this.orderIndex = orderIndex;
+        this.plannedSets = plannedSets;
+        this.plannedReps = plannedReps;
+        this.restSeconds = restSeconds;
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o)
