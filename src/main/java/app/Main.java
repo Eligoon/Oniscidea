@@ -79,6 +79,11 @@ public class Main {
                             userController::delete
                     );
 
+                    config.routes.post(
+                            "/api/login",
+                            userController::login
+                    );
+
 
                 }).start(7070);
         }
