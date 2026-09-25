@@ -5,6 +5,8 @@ import app.dtos.UserDTO;
 import app.entities.User;
 import app.exceptions.ApiException;
 
+import java.util.List;
+
 public class UserService {
 
     private final UserDAO userDAO;
@@ -63,6 +65,16 @@ public class UserService {
                 userDAO.getById(id);
 
         return toDTO(user);
+    }
+
+    public List<UserDTO> getAllUsers() {
+
+        List<User> users =
+                userDAO.getAll();
+
+        return users.stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     public UserDTO login(
