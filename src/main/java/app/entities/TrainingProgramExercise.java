@@ -34,6 +34,7 @@ public class TrainingProgramExercise {
 
     private Integer plannedSets;
     private Integer plannedReps;
+    private Integer restSeconds;
 
     @Override
     public final boolean equals(Object o) {
