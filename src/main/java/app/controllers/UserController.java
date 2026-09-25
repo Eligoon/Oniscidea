@@ -4,6 +4,8 @@ import app.dtos.UserDTO;
 import app.services.UserService;
 import io.javalin.http.Context;
 
+import java.util.List;
+
 public class UserController {
 
     private final UserService userService;
@@ -38,5 +40,13 @@ public class UserController {
                 userService.getUser(id);
 
         ctx.json(user);
+    }
+
+    public void getAll(Context ctx) {
+
+        List<UserDTO> users =
+                userService.getAllUsers();
+
+        ctx.json(users);
     }
 }
