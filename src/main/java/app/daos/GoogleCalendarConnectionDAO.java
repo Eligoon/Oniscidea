@@ -238,10 +238,7 @@ public class GoogleCalendarConnectionDAO
                             .getResultList();
 
             if (connections.isEmpty()) {
-                throw new ApiException(
-                        404,
-                        "Google Calendar connection not found"
-                );
+                return null;
             }
 
             return connections.get(0);

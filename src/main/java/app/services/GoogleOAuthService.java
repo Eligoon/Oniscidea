@@ -7,9 +7,9 @@ import app.entities.User;
 import app.exceptions.ApiException;
 import app.utils.Utils;
 
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
+import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -18,7 +18,13 @@ import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Userinfo;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.Collections;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 public class GoogleOAuthService {
 
@@ -37,6 +43,12 @@ public class GoogleOAuthService {
     private static final String REDIRECT_URI =
             Utils.getPropertyValue(
                     "GOOGLE_REDIRECT_URI",
+                    "config.properties"
+            );
+
+    private static final String OAUTH_STATE_SECRET =
+            Utils.getPropertyValue(
+                    "GOOGLE_OAUTH_STATE_SECRET",
                     "config.properties"
             );
 
@@ -74,10 +86,7 @@ public class GoogleOAuthService {
                 .build();
     }
 
-    public String getAuthorizationUrl(
-            Integer userId,
-            String state
-    ) {
+    public String getAuthorizationUrl(Integer userId) {
 
         if (userId == null) {
             throw new ApiException(
@@ -86,15 +95,11 @@ public class GoogleOAuthService {
             );
         }
 
-        if (state == null || state.isBlank()) {
-            throw new ApiException(
-                    400,
-                    "OAuth state is required"
-            );
-        }
-
         // Make sure the application user exists
         userDAO.getById(userId);
+
+        String state =
+                createState(userId);
 
         return createFlow()
                 .newAuthorizationUrl()
@@ -104,16 +109,9 @@ public class GoogleOAuthService {
     }
 
     public void authenticate(
-            Integer userId,
-            String code
+            String code,
+            String state
     ) {
-
-        if (userId == null) {
-            throw new ApiException(
-                    401,
-                    "User must be logged in"
-            );
-        }
 
         if (code == null || code.isBlank()) {
             throw new ApiException(
@@ -122,8 +120,12 @@ public class GoogleOAuthService {
             );
         }
 
+        Integer userId =
+                validateState(state);
+
         // Make sure the application user exists
-        User user = userDAO.getById(userId);
+        User user =
+                userDAO.getById(userId);
 
         try {
 
@@ -168,7 +170,17 @@ public class GoogleOAuthService {
                             .execute();
 
             GoogleCalendarConnection connection =
-                    connectionDAO.getByUserId(userId);
+                    null;
+
+            try {
+                connection =
+                        connectionDAO.getByUserId(userId);
+            } catch (ApiException e) {
+
+                if (e.getCode() != 404) {
+                    throw e;
+                }
+            }
 
             if (connection == null) {
 
@@ -192,11 +204,149 @@ public class GoogleOAuthService {
                 connectionDAO.update(connection);
             }
 
+        } catch (ApiException e) {
+
+            throw e;
+
         } catch (IOException e) {
 
             throw new ApiException(
                     500,
                     "Could not authenticate with Google"
+            );
+        }
+    }
+
+    private String createState(Integer userId) {
+
+        if (userId == null) {
+            throw new ApiException(
+                    401,
+                    "User must be logged in"
+            );
+        }
+
+        String value =
+                userId + ":" + System.currentTimeMillis();
+
+        try {
+
+            Mac mac =
+                    Mac.getInstance("HmacSHA256");
+
+            SecretKeySpec key =
+                    new SecretKeySpec(
+                            OAUTH_STATE_SECRET.getBytes(
+                                    StandardCharsets.UTF_8
+                            ),
+                            "HmacSHA256"
+                    );
+
+            mac.init(key);
+
+            byte[] signature =
+                    mac.doFinal(
+                            value.getBytes(
+                                    StandardCharsets.UTF_8
+                            )
+                    );
+
+            String encodedSignature =
+                    Base64.getUrlEncoder()
+                            .withoutPadding()
+                            .encodeToString(signature);
+
+            return value + ":" + encodedSignature;
+
+        } catch (Exception e) {
+
+            throw new ApiException(
+                    500,
+                    "Could not create OAuth state"
+            );
+        }
+    }
+
+    private Integer validateState(String state) {
+
+        if (state == null || state.isBlank()) {
+            throw new ApiException(
+                    400,
+                    "OAuth state is required"
+            );
+        }
+
+        String[] parts =
+                state.split(":");
+
+        if (parts.length != 3) {
+            throw new ApiException(
+                    400,
+                    "Invalid OAuth state"
+            );
+        }
+
+        String value =
+                parts[0] + ":" + parts[1];
+
+        String providedSignature =
+                parts[2];
+
+        try {
+
+            Mac mac =
+                    Mac.getInstance("HmacSHA256");
+
+            SecretKeySpec key =
+                    new SecretKeySpec(
+                            OAUTH_STATE_SECRET.getBytes(
+                                    StandardCharsets.UTF_8
+                            ),
+                            "HmacSHA256"
+                    );
+
+            mac.init(key);
+
+            byte[] signature =
+                    mac.doFinal(
+                            value.getBytes(
+                                    StandardCharsets.UTF_8
+                            )
+                    );
+
+            String expectedSignature =
+                    Base64.getUrlEncoder()
+                            .withoutPadding()
+                            .encodeToString(signature);
+
+            boolean valid =
+                    MessageDigest.isEqual(
+                            expectedSignature.getBytes(
+                                    StandardCharsets.UTF_8
+                            ),
+                            providedSignature.getBytes(
+                                    StandardCharsets.UTF_8
+                            )
+                    );
+
+            if (!valid) {
+                throw new ApiException(
+                        400,
+                        "Invalid OAuth state"
+                );
+            }
+
+            return Integer.parseInt(parts[0]);
+
+        } catch (ApiException e) {
+
+            throw e;
+
+        } catch (Exception e) {
+
+            throw new ApiException(
+                    400,
+                    "Invalid OAuth state"
             );
         }
     }

@@ -101,6 +101,35 @@ public class Main {
                         exerciseBodyPartService
                 );
 
+        // Google Calendar
+
+        GoogleCalendarConnectionDAO googleCalendarConnectionDAO =
+                new GoogleCalendarConnectionDAO(emf);
+
+        GoogleOAuthService googleOAuthService =
+                new GoogleOAuthService(
+                        googleCalendarConnectionDAO,
+                        userDAO
+                );
+
+        GoogleCalendarService googleCalendarService =
+                new GoogleCalendarService(
+                        googleCalendarConnectionDAO
+                );
+
+        GoogleCalendarExecutor googleCalendarExecutor =
+                new GoogleCalendarExecutor();
+
+        GoogleOAuthController googleOAuthController =
+                new GoogleOAuthController(
+                        googleOAuthService
+                );
+
+        GoogleCalendarController googleCalendarController =
+                new GoogleCalendarController(
+                        googleCalendarService
+                );
+
         // TrainingSession
 
         TrainingSessionDAO trainingSessionDAO =
@@ -180,6 +209,8 @@ public class Main {
                 new NoteController(
                         noteService
                 );
+
+
 
         Javalin app =
                 Javalin.create(config -> {
@@ -374,6 +405,23 @@ public class Main {
                     config.routes.delete(
                             "/api/exercises/{id}/body-parts/{bodyPartId}",
                             exerciseBodyPartController::removeBodyPart
+                    );
+
+                    // Google Calendar
+
+                    config.routes.post(
+                            "/api/google-calendar/events",
+                            googleCalendarController::createEvent
+                    );
+
+                    config.routes.put(
+                            "/api/google-calendar/events/{eventId}",
+                            googleCalendarController::updateEvent
+                    );
+
+                    config.routes.delete(
+                            "/api/google-calendar/events/{eventId}",
+                            googleCalendarController::deleteEvent
                     );
 
                     // Exercise logs
