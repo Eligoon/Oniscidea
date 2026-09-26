@@ -7,8 +7,9 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class NoteDTO {
+
     private Integer id;
-    private Integer profileId;
-    private Integer trainingSessionId;
+    private String title;
     private String text;
+    private Integer profileId;
 }
