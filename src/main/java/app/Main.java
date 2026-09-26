@@ -18,6 +18,10 @@ import app.controllers.TrainingProgramExerciseController;
 import app.daos.ExerciseDAO;
 import app.daos.TrainingProgramExerciseDAO;
 import app.services.TrainingProgramExerciseService;
+import app.controllers.TrainingSessionController;
+import app.daos.TrainingCalendarDAO;
+import app.daos.TrainingSessionDAO;
+import app.services.TrainingSessionService;
 
 public class Main {
 
@@ -81,6 +85,26 @@ public class Main {
         TrainingProgramExerciseController trainingProgramExerciseController =
                 new TrainingProgramExerciseController(
                         trainingProgramExerciseService
+                );
+
+        // TrainingSession
+
+        TrainingSessionDAO trainingSessionDAO =
+                new TrainingSessionDAO(emf);
+
+        TrainingCalendarDAO trainingCalendarDAO =
+                new TrainingCalendarDAO(emf);
+
+        TrainingSessionService trainingSessionService =
+                new TrainingSessionService(
+                        trainingSessionDAO,
+                        trainingCalendarDAO,
+                        trainingProgramDAO
+                );
+
+        TrainingSessionController trainingSessionController =
+                new TrainingSessionController(
+                        trainingSessionService
                 );
 
         Javalin app =
@@ -202,6 +226,32 @@ public class Main {
                     config.routes.delete(
                             "/api/training-programs/{id}/exercises/{exerciseId}",
                             trainingProgramExerciseController::deleteExercise
+                    );
+
+                    // Training sessions
+                    config.routes.post(
+                            "/api/training-sessions",
+                            trainingSessionController::create
+                    );
+
+                    config.routes.get(
+                            "/api/training-sessions",
+                            trainingSessionController::getAll
+                    );
+
+                    config.routes.get(
+                            "/api/training-sessions/{id}",
+                            trainingSessionController::getById
+                    );
+
+                    config.routes.put(
+                            "/api/training-sessions/{id}",
+                            trainingSessionController::update
+                    );
+
+                    config.routes.delete(
+                            "/api/training-sessions/{id}",
+                            trainingSessionController::delete
                     );
 
                 }).start(7070);
