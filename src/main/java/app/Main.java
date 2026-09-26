@@ -32,6 +32,9 @@ import app.daos.ExerciseLogDAO;
 import app.daos.SetLogDAO;
 import app.services.ExerciseLogService;
 import app.services.SetLogService;
+import app.controllers.NoteController;
+import app.daos.NoteDAO;
+import app.services.NoteService;
 
 public class Main {
 
@@ -165,6 +168,22 @@ public class Main {
         SetLogController setLogController =
                 new SetLogController(
                         setLogService
+                );
+
+        // Note
+
+        NoteDAO noteDAO =
+                new NoteDAO(emf);
+
+        NoteService noteService =
+                new NoteService(
+                        noteDAO,
+                        profileDAO
+                );
+
+        NoteController noteController =
+                new NoteController(
+                        noteService
                 );
 
         Javalin app =
@@ -371,6 +390,32 @@ public class Main {
                     config.routes.get(
                             "/api/set-logs/{id}",
                             setLogController::getById
+                    );
+
+                    // Notes
+                    config.routes.post(
+                            "/api/notes",
+                            noteController::create
+                    );
+
+                    config.routes.get(
+                            "/api/notes",
+                            noteController::getAll
+                    );
+
+                    config.routes.get(
+                            "/api/notes/{id}",
+                            noteController::getById
+                    );
+
+                    config.routes.put(
+                            "/api/notes/{id}",
+                            noteController::update
+                    );
+
+                    config.routes.delete(
+                            "/api/notes/{id}",
+                            noteController::delete
                     );
 
                 }).start(7070);
