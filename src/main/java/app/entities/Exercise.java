@@ -36,6 +36,7 @@ public class Exercise {
     )
     @ToString.Exclude
     @Builder.Default
+
     private Set<BodyPart> bodyParts = new HashSet<>();
 
     private LocalDateTime createdAt;
@@ -57,6 +58,14 @@ public class Exercise {
     public Exercise(String name, String description) {
         this.name = name;
         this.description = description;
+    }
+
+    public void addBodyPart(BodyPart bodyPart) {
+        bodyParts.add(bodyPart);
+    }
+
+    public void removeBodyPart(BodyPart bodyPart) {
+        bodyParts.remove(bodyPart);
     }
 
     @Override
