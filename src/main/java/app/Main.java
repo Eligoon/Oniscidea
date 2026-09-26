@@ -79,6 +79,28 @@ public class Main {
         ExerciseController exerciseController =
                 new ExerciseController(exerciseService);
 
+        // BodyPart
+        BodyPartDAO bodyPartDAO =
+                new BodyPartDAO(emf);
+
+        BodyPartService bodyPartService =
+                new BodyPartService(bodyPartDAO);
+
+        BodyPartController bodyPartController =
+                new BodyPartController(bodyPartService);
+
+        // Exercise BodyPart
+        ExerciseBodyPartService exerciseBodyPartService =
+                new ExerciseBodyPartService(
+                        exerciseDAO,
+                        bodyPartDAO
+                );
+
+        ExerciseBodyPartController exerciseBodyPartController =
+                new ExerciseBodyPartController(
+                        exerciseBodyPartService
+                );
+
         // TrainingSession
 
         TrainingSessionDAO trainingSessionDAO =
@@ -158,16 +180,6 @@ public class Main {
                 new NoteController(
                         noteService
                 );
-
-        // BodyPart
-
-        BodyPartDAO bodyPartDAO = new BodyPartDAO(emf);
-
-        BodyPartService bodyPartService =
-                new BodyPartService(bodyPartDAO);
-
-        BodyPartController bodyPartController =
-                new BodyPartController(bodyPartService);
 
         Javalin app =
                 Javalin.create(config -> {
@@ -351,6 +363,17 @@ public class Main {
                     config.routes.get(
                             "/api/exercises/{id}",
                             exerciseController::getById
+                    );
+
+                    // Exercise BodyPart
+                    config.routes.post(
+                            "/api/exercises/{id}/body-parts/{bodyPartId}",
+                            exerciseBodyPartController::addBodyPart
+                    );
+
+                    config.routes.delete(
+                            "/api/exercises/{id}/body-parts/{bodyPartId}",
+                            exerciseBodyPartController::removeBodyPart
                     );
 
                     // Exercise logs
