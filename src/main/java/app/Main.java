@@ -26,6 +26,12 @@ import app.controllers.TrainingCalendarController;
 import app.services.TrainingCalendarService;
 import app.controllers.ExerciseController;
 import app.services.ExerciseService;
+import app.controllers.ExerciseLogController;
+import app.controllers.SetLogController;
+import app.daos.ExerciseLogDAO;
+import app.daos.SetLogDAO;
+import app.services.ExerciseLogService;
+import app.services.SetLogService;
 
 public class Main {
 
@@ -128,6 +134,37 @@ public class Main {
         TrainingCalendarController trainingCalendarController =
                 new TrainingCalendarController(
                         trainingCalendarService
+                );
+
+        // Logs
+
+        ExerciseLogDAO exerciseLogDAO =
+                new ExerciseLogDAO(emf);
+
+        SetLogDAO setLogDAO =
+                new SetLogDAO(emf);
+
+        ExerciseLogService exerciseLogService =
+                new ExerciseLogService(
+                        exerciseLogDAO,
+                        trainingSessionDAO,
+                        exerciseDAO
+                );
+
+        SetLogService setLogService =
+                new SetLogService(
+                        setLogDAO,
+                        exerciseLogDAO
+                );
+
+        ExerciseLogController exerciseLogController =
+                new ExerciseLogController(
+                        exerciseLogService
+                );
+
+        SetLogController setLogController =
+                new SetLogController(
+                        setLogService
                 );
 
         Javalin app =
@@ -312,6 +349,28 @@ public class Main {
                     config.routes.get(
                             "/api/exercises/{id}",
                             exerciseController::getById
+                    );
+
+                    // Exercise logs
+                    config.routes.post(
+                            "/api/training-sessions/{id}/logs",
+                            exerciseLogController::create
+                    );
+
+                    config.routes.get(
+                            "/api/exercise-logs/{id}",
+                            exerciseLogController::getById
+                    );
+
+                    // Set logs
+                    config.routes.post(
+                            "/api/exercise-logs/{id}/sets",
+                            setLogController::create
+                    );
+
+                    config.routes.get(
+                            "/api/set-logs/{id}",
+                            setLogController::getById
                     );
 
                 }).start(7070);

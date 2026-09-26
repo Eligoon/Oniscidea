@@ -41,14 +41,15 @@ public class SetLog {
             int setNumber,
             Double weight,
             Integer reps,
-            Integer rir
+            Integer rir,
+            boolean completed
     ) {
         this.exerciseLog = exerciseLog;
         this.setNumber = setNumber;
         this.weight = weight;
         this.reps = reps;
         this.rir = rir;
-        this.completed = false;
+        this.completed = completed;
     }
 
     @Override
