@@ -24,6 +24,8 @@ import app.daos.TrainingSessionDAO;
 import app.services.TrainingSessionService;
 import app.controllers.TrainingCalendarController;
 import app.services.TrainingCalendarService;
+import app.controllers.ExerciseController;
+import app.services.ExerciseService;
 
 public class Main {
 
@@ -88,6 +90,12 @@ public class Main {
                 new TrainingProgramExerciseController(
                         trainingProgramExerciseService
                 );
+
+        ExerciseService exerciseService =
+                new ExerciseService(exerciseDAO);
+
+        ExerciseController exerciseController =
+                new ExerciseController(exerciseService);
 
         // TrainingSession
 
@@ -293,6 +301,17 @@ public class Main {
                     config.routes.delete(
                             "/api/calendars/{id}",
                             trainingCalendarController::delete
+                    );
+
+                    // Exercises
+                    config.routes.get(
+                            "/api/exercises",
+                            exerciseController::getAll
+                    );
+
+                    config.routes.get(
+                            "/api/exercises/{id}",
+                            exerciseController::getById
                     );
 
                 }).start(7070);
