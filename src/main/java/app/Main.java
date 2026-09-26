@@ -1,40 +1,13 @@
 package app;
 
 import app.config.HibernateConfig;
-import app.controllers.ProfileController;
-import app.controllers.UserController;
-import app.daos.ProfileDAO;
-import app.daos.UserDAO;
+import app.controllers.*;
+import app.daos.*;
 import app.dtos.ErrorResponseDTO;
 import app.exceptions.ApiException;
-import app.services.ProfileService;
-import app.services.UserService;
+import app.services.*;
 import io.javalin.Javalin;
 import jakarta.persistence.EntityManagerFactory;
-import app.controllers.TrainingProgramController;
-import app.daos.TrainingProgramDAO;
-import app.services.TrainingProgramService;
-import app.controllers.TrainingProgramExerciseController;
-import app.daos.ExerciseDAO;
-import app.daos.TrainingProgramExerciseDAO;
-import app.services.TrainingProgramExerciseService;
-import app.controllers.TrainingSessionController;
-import app.daos.TrainingCalendarDAO;
-import app.daos.TrainingSessionDAO;
-import app.services.TrainingSessionService;
-import app.controllers.TrainingCalendarController;
-import app.services.TrainingCalendarService;
-import app.controllers.ExerciseController;
-import app.services.ExerciseService;
-import app.controllers.ExerciseLogController;
-import app.controllers.SetLogController;
-import app.daos.ExerciseLogDAO;
-import app.daos.SetLogDAO;
-import app.services.ExerciseLogService;
-import app.services.SetLogService;
-import app.controllers.NoteController;
-import app.daos.NoteDAO;
-import app.services.NoteService;
 
 public class Main {
 
@@ -185,6 +158,16 @@ public class Main {
                 new NoteController(
                         noteService
                 );
+
+        // BodyPart
+
+        BodyPartDAO bodyPartDAO = new BodyPartDAO(emf);
+
+        BodyPartService bodyPartService =
+                new BodyPartService(bodyPartDAO);
+
+        BodyPartController bodyPartController =
+                new BodyPartController(bodyPartService);
 
         Javalin app =
                 Javalin.create(config -> {
@@ -416,6 +399,32 @@ public class Main {
                     config.routes.delete(
                             "/api/notes/{id}",
                             noteController::delete
+                    );
+
+                    // Body Parts
+                    config.routes.post(
+                            "/api/body-parts",
+                            bodyPartController::create
+                    );
+
+                    config.routes.get(
+                            "/api/body-parts",
+                            bodyPartController::getAll
+                    );
+
+                    config.routes.get(
+                            "/api/body-parts/{id}",
+                            bodyPartController::getById
+                    );
+
+                    config.routes.put(
+                            "/api/body-parts/{id}",
+                            bodyPartController::update
+                    );
+
+                    config.routes.delete(
+                            "/api/body-parts/{id}",
+                            bodyPartController::delete
                     );
 
                 }).start(7070);
