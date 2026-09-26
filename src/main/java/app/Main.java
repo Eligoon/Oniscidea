@@ -22,6 +22,8 @@ import app.controllers.TrainingSessionController;
 import app.daos.TrainingCalendarDAO;
 import app.daos.TrainingSessionDAO;
 import app.services.TrainingSessionService;
+import app.controllers.TrainingCalendarController;
+import app.services.TrainingCalendarService;
 
 public class Main {
 
@@ -105,6 +107,19 @@ public class Main {
         TrainingSessionController trainingSessionController =
                 new TrainingSessionController(
                         trainingSessionService
+                );
+
+        // TrainingCalendar
+
+        TrainingCalendarService trainingCalendarService =
+                new TrainingCalendarService(
+                        trainingCalendarDAO,
+                        profileDAO
+                );
+
+        TrainingCalendarController trainingCalendarController =
+                new TrainingCalendarController(
+                        trainingCalendarService
                 );
 
         Javalin app =
@@ -252,6 +267,32 @@ public class Main {
                     config.routes.delete(
                             "/api/training-sessions/{id}",
                             trainingSessionController::delete
+                    );
+
+                    // Training calendars
+                    config.routes.post(
+                            "/api/calendars",
+                            trainingCalendarController::create
+                    );
+
+                    config.routes.get(
+                            "/api/calendars",
+                            trainingCalendarController::getAll
+                    );
+
+                    config.routes.get(
+                            "/api/calendars/{id}",
+                            trainingCalendarController::getById
+                    );
+
+                    config.routes.put(
+                            "/api/calendars/{id}",
+                            trainingCalendarController::update
+                    );
+
+                    config.routes.delete(
+                            "/api/calendars/{id}",
+                            trainingCalendarController::delete
                     );
 
                 }).start(7070);
