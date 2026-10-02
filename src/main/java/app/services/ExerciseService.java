@@ -3,7 +3,7 @@ package app.services;
 import app.daos.ExerciseDAO;
 import app.dtos.ExerciseDTO;
 import app.entities.Exercise;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.util.List;
 
@@ -17,8 +17,7 @@ public class ExerciseService {
 
     public ExerciseDTO getExercise(Integer id) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Exercise id is required"
             );
         }

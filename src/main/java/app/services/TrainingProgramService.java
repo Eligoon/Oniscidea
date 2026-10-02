@@ -5,7 +5,7 @@ import app.daos.TrainingProgramDAO;
 import app.dtos.TrainingProgramDTO;
 import app.entities.Profile;
 import app.entities.TrainingProgram;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.util.List;
 
@@ -29,15 +29,13 @@ public class TrainingProgramService {
     ) {
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program name is required"
             );
         }
 
         if (profileId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile id is required"
             );
         }
@@ -61,8 +59,7 @@ public class TrainingProgramService {
     public TrainingProgramDTO getTrainingProgram(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
@@ -90,15 +87,13 @@ public class TrainingProgramService {
     ) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program name is required"
             );
         }
@@ -120,8 +115,7 @@ public class TrainingProgramService {
     public void deleteTrainingProgram(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }

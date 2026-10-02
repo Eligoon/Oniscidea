@@ -7,7 +7,8 @@ import app.dtos.TrainingProgramExerciseDTO;
 import app.entities.Exercise;
 import app.entities.TrainingProgram;
 import app.entities.TrainingProgramExercise;
-import app.exceptions.ApiException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 
 public class TrainingProgramExerciseService {
 
@@ -20,9 +21,14 @@ public class TrainingProgramExerciseService {
             TrainingProgramDAO trainingProgramDAO,
             ExerciseDAO exerciseDAO
     ) {
-        this.trainingProgramExerciseDAO = trainingProgramExerciseDAO;
-        this.trainingProgramDAO = trainingProgramDAO;
-        this.exerciseDAO = exerciseDAO;
+        this.trainingProgramExerciseDAO =
+                trainingProgramExerciseDAO;
+
+        this.trainingProgramDAO =
+                trainingProgramDAO;
+
+        this.exerciseDAO =
+                exerciseDAO;
     }
 
     public TrainingProgramExerciseDTO addExercise(
@@ -34,28 +40,27 @@ public class TrainingProgramExerciseService {
             Integer restSeconds
     ) {
         if (trainingProgramId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
 
         if (exerciseId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Exercise id is required"
             );
         }
 
         if (exerciseOrder == null || exerciseOrder < 1) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Exercise order must be greater than 0"
             );
         }
 
         TrainingProgram trainingProgram =
-                trainingProgramDAO.getById(trainingProgramId);
+                trainingProgramDAO.getById(
+                        trainingProgramId
+                );
 
         Exercise exercise =
                 exerciseDAO.getById(exerciseId);
@@ -83,15 +88,13 @@ public class TrainingProgramExerciseService {
             Integer exerciseId
     ) {
         if (trainingProgramId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
 
         if (exerciseId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Exercise id is required"
             );
         }
@@ -118,8 +121,7 @@ public class TrainingProgramExerciseService {
             }
         }
 
-        throw new ApiException(
-                404,
+        throw new ResourceNotFoundException(
                 "Exercise is not part of this training program"
         );
     }

@@ -5,7 +5,7 @@ import app.daos.SetLogDAO;
 import app.dtos.SetLogDTO;
 import app.entities.ExerciseLog;
 import app.entities.SetLog;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 public class SetLogService {
 
@@ -29,36 +29,31 @@ public class SetLogService {
             boolean completed
     ) {
         if (exerciseLogId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Exercise log id is required"
             );
         }
 
         if (setNumber == null || setNumber < 1) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Set number must be greater than 0"
             );
         }
 
         if (reps != null && reps < 0) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Reps cannot be negative"
             );
         }
 
         if (weight != null && weight < 0) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Weight cannot be negative"
             );
         }
 
         if (rir != null && rir < 0) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "RIR cannot be negative"
             );
         }
@@ -83,9 +78,9 @@ public class SetLogService {
     }
 
     public SetLogDTO getSetLog(Integer id) {
+
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Set log id is required"
             );
         }
@@ -97,6 +92,7 @@ public class SetLogService {
     }
 
     private SetLogDTO toDTO(SetLog setLog) {
+
         return new SetLogDTO(
                 setLog.getId(),
                 setLog.getExerciseLog().getId(),

@@ -3,7 +3,7 @@ package app.services;
 import app.daos.BodyPartDAO;
 import app.dtos.BodyPartDTO;
 import app.entities.BodyPart;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.util.List;
 
@@ -20,15 +20,13 @@ public class BodyPartService {
             String color
     ) {
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Body part name is required"
             );
         }
 
         if (color == null || color.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Body part color is required"
             );
         }
@@ -45,8 +43,7 @@ public class BodyPartService {
     public BodyPartDTO getBodyPart(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Body part id is required"
             );
         }
@@ -73,22 +70,19 @@ public class BodyPartService {
             String color
     ) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Body part id is required"
             );
         }
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Body part name is required"
             );
         }
 
         if (color == null || color.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Body part color is required"
             );
         }
@@ -112,8 +106,7 @@ public class BodyPartService {
     public void deleteBodyPart(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Body part id is required"
             );
         }

@@ -5,7 +5,7 @@ import app.daos.TrainingCalendarDAO;
 import app.dtos.TrainingCalendarDTO;
 import app.entities.Profile;
 import app.entities.TrainingCalendar;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.util.List;
 
@@ -27,15 +27,13 @@ public class TrainingCalendarService {
             Integer profileId
     ) {
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Calendar name is required"
             );
         }
 
         if (profileId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile id is required"
             );
         }
@@ -59,8 +57,7 @@ public class TrainingCalendarService {
             Integer id
     ) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Calendar id is required"
             );
         }
@@ -86,15 +83,13 @@ public class TrainingCalendarService {
             String name
     ) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Calendar id is required"
             );
         }
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Calendar name is required"
             );
         }
@@ -120,8 +115,7 @@ public class TrainingCalendarService {
     public void deleteTrainingCalendar(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Calendar id is required"
             );
         }
@@ -135,7 +129,8 @@ public class TrainingCalendarService {
         return new TrainingCalendarDTO(
                 calendar.getId(),
                 calendar.getName(),
-                calendar.getProfile().getId()
+                calendar.getProfile().getId(),
+                calendar.getGoogleCalendarId()
         );
     }
 }

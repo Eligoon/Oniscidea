@@ -5,6 +5,7 @@ import app.daos.ExerciseDAO;
 import app.entities.BodyPart;
 import app.entities.Exercise;
 import app.exceptions.ApiException;
+import app.exceptions.ResourceNotFoundException;
 
 public class ExerciseBodyPartService {
 
@@ -21,11 +22,17 @@ public class ExerciseBodyPartService {
 
     public void addBodyPart(Integer exerciseId, Integer bodyPartId) {
 
-        Exercise exercise = exerciseDAO.getById(exerciseId);
-        BodyPart bodyPart = bodyPartDAO.getById(bodyPartId);
+        Exercise exercise =
+                exerciseDAO.getById(exerciseId);
+
+        BodyPart bodyPart =
+                bodyPartDAO.getById(bodyPartId);
 
         if (exercise.getBodyParts().contains(bodyPart)) {
-            throw new ApiException(409, "Body part is already assigned to this exercise");
+            throw new ApiException(
+                    409,
+                    "Body part is already assigned to this exercise"
+            );
         }
 
         exercise.addBodyPart(bodyPart);
@@ -35,11 +42,16 @@ public class ExerciseBodyPartService {
 
     public void removeBodyPart(Integer exerciseId, Integer bodyPartId) {
 
-        Exercise exercise = exerciseDAO.getById(exerciseId);
-        BodyPart bodyPart = bodyPartDAO.getById(bodyPartId);
+        Exercise exercise =
+                exerciseDAO.getById(exerciseId);
+
+        BodyPart bodyPart =
+                bodyPartDAO.getById(bodyPartId);
 
         if (!exercise.getBodyParts().contains(bodyPart)) {
-            throw new ApiException(404, "Body part is not assigned to this exercise");
+            throw new ResourceNotFoundException(
+                    "Body part is not assigned to this exercise"
+            );
         }
 
         exercise.removeBodyPart(bodyPart);

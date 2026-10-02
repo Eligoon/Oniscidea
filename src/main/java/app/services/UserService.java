@@ -3,7 +3,7 @@ package app.services;
 import app.daos.UserDAO;
 import app.dtos.UserDTO;
 import app.entities.User;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.util.List;
 
@@ -22,22 +22,19 @@ public class UserService {
     ) {
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Name is required"
             );
         }
 
         if (email == null || email.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Email is required"
             );
         }
 
         if (password == null || password.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Password is required"
             );
         }
@@ -55,8 +52,7 @@ public class UserService {
     public UserDTO getUser(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "User ID is required"
             );
         }
@@ -85,29 +81,25 @@ public class UserService {
     ) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "User id is required"
             );
         }
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Name is required"
             );
         }
 
         if (email == null || email.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Email is required"
             );
         }
 
         if (password == null || password.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Password is required"
             );
         }
@@ -130,8 +122,7 @@ public class UserService {
     public void deleteUser(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "User id is required"
             );
         }
@@ -145,15 +136,13 @@ public class UserService {
     ) {
 
         if (email == null || email.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Email is required"
             );
         }
 
         if (password == null || password.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Password is required"
             );
         }

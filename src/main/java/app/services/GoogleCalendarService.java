@@ -3,6 +3,7 @@ package app.services;
 import app.daos.GoogleCalendarConnectionDAO;
 import app.entities.GoogleCalendarConnection;
 import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 import app.utils.Utils;
 
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -56,8 +57,7 @@ public class GoogleCalendarService {
                 connectionDAO.getByUserId(userId);
 
         if (connection == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Google Calendar is not connected"
             );
         }
@@ -125,22 +125,19 @@ public class GoogleCalendarService {
     ) {
 
         if (title == null || title.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Event title is required"
             );
         }
 
         if (start == null || end == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Event start and end are required"
             );
         }
 
         if (!end.isAfter(start)) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Event end must be after event start"
             );
         }
@@ -195,29 +192,25 @@ public class GoogleCalendarService {
     ) {
 
         if (eventId == null || eventId.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Google event ID is required"
             );
         }
 
         if (title == null || title.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Event title is required"
             );
         }
 
         if (start == null || end == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Event start and end are required"
             );
         }
 
         if (!end.isAfter(start)) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Event end must be after event start"
             );
         }

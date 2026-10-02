@@ -7,7 +7,7 @@ import app.dtos.TrainingSessionDTO;
 import app.entities.TrainingCalendar;
 import app.entities.TrainingProgram;
 import app.entities.TrainingSession;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,22 +34,19 @@ public class TrainingSessionService {
             Integer trainingProgramId
     ) {
         if (trainingDate == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training date is required"
             );
         }
 
         if (calendarId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Calendar id is required"
             );
         }
 
         if (trainingProgramId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
@@ -74,9 +71,9 @@ public class TrainingSessionService {
     }
 
     public TrainingSessionDTO getTrainingSession(Integer id) {
+
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training session id is required"
             );
         }
@@ -88,6 +85,7 @@ public class TrainingSessionService {
     }
 
     public List<TrainingSessionDTO> getAllTrainingSessions() {
+
         List<TrainingSession> sessions =
                 trainingSessionDAO.getAll();
 
@@ -105,29 +103,25 @@ public class TrainingSessionService {
             String notes
     ) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training session id is required"
             );
         }
 
         if (trainingDate == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training date is required"
             );
         }
 
         if (calendarId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Calendar id is required"
             );
         }
 
         if (trainingProgramId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
@@ -158,9 +152,9 @@ public class TrainingSessionService {
     }
 
     public void deleteTrainingSession(Integer id) {
+
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training session id is required"
             );
         }
@@ -176,8 +170,10 @@ public class TrainingSessionService {
                 session.getCalendar().getId(),
                 session.getTrainingProgram().getId(),
                 session.getTrainingDate(),
+                session.getStartTime(),
+                session.getEndTime(),
                 session.isCompleted(),
-                session.getNotes()
+                session.getGoogleEventId()
         );
     }
 }

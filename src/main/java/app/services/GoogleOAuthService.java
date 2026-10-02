@@ -5,6 +5,7 @@ import app.daos.UserDAO;
 import app.entities.GoogleCalendarConnection;
 import app.entities.User;
 import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 import app.utils.Utils;
 
 import com.google.api.client.auth.oauth2.BearerToken;
@@ -114,8 +115,7 @@ public class GoogleOAuthService {
     ) {
 
         if (code == null || code.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Authorization code is required"
             );
         }
@@ -170,17 +170,7 @@ public class GoogleOAuthService {
                             .execute();
 
             GoogleCalendarConnection connection =
-                    null;
-
-            try {
-                connection =
-                        connectionDAO.getByUserId(userId);
-            } catch (ApiException e) {
-
-                if (e.getCode() != 404) {
-                    throw e;
-                }
-            }
+                    connectionDAO.getByUserId(userId);
 
             if (connection == null) {
 
@@ -270,8 +260,7 @@ public class GoogleOAuthService {
     private Integer validateState(String state) {
 
         if (state == null || state.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "OAuth state is required"
             );
         }
@@ -280,8 +269,7 @@ public class GoogleOAuthService {
                 state.split(":");
 
         if (parts.length != 3) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Invalid OAuth state"
             );
         }
@@ -330,8 +318,7 @@ public class GoogleOAuthService {
                     );
 
             if (!valid) {
-                throw new ApiException(
-                        400,
+                throw new ValidationException(
                         "Invalid OAuth state"
                 );
             }
@@ -344,8 +331,7 @@ public class GoogleOAuthService {
 
         } catch (Exception e) {
 
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Invalid OAuth state"
             );
         }

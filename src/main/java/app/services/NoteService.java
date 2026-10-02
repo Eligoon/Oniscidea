@@ -5,7 +5,7 @@ import app.daos.ProfileDAO;
 import app.dtos.NoteDTO;
 import app.entities.Note;
 import app.entities.Profile;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.util.List;
 
@@ -28,22 +28,19 @@ public class NoteService {
             Integer profileId
     ) {
         if (title == null || title.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Note title is required"
             );
         }
 
         if (text == null || text.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Note text is required"
             );
         }
 
         if (profileId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile id is required"
             );
         }
@@ -65,9 +62,9 @@ public class NoteService {
     }
 
     public NoteDTO getNote(Integer id) {
+
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Note id is required"
             );
         }
@@ -94,22 +91,19 @@ public class NoteService {
             String text
     ) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Note id is required"
             );
         }
 
         if (title == null || title.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Note title is required"
             );
         }
 
         if (text == null || text.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Note text is required"
             );
         }
@@ -134,8 +128,7 @@ public class NoteService {
     public void deleteNote(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Note id is required"
             );
         }

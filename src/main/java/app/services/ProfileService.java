@@ -5,7 +5,7 @@ import app.daos.UserDAO;
 import app.dtos.ProfileDTO;
 import app.entities.Profile;
 import app.entities.User;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 import java.util.List;
 
@@ -28,15 +28,13 @@ public class ProfileService {
     ) {
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile name is required"
             );
         }
 
         if (userId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "User id is required"
             );
         }
@@ -59,8 +57,7 @@ public class ProfileService {
     public ProfileDTO getProfile(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile id is required"
             );
         }
@@ -87,15 +84,13 @@ public class ProfileService {
     ) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile id is required"
             );
         }
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile name is required"
             );
         }
@@ -114,8 +109,7 @@ public class ProfileService {
     public void deleteProfile(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Profile id is required"
             );
         }

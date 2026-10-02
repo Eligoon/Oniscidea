@@ -7,7 +7,7 @@ import app.dtos.ExerciseLogDTO;
 import app.entities.Exercise;
 import app.entities.ExerciseLog;
 import app.entities.TrainingSession;
-import app.exceptions.ApiException;
+import app.exceptions.ValidationException;
 
 public class ExerciseLogService {
 
@@ -30,15 +30,13 @@ public class ExerciseLogService {
             Integer exerciseId
     ) {
         if (trainingSessionId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training session id is required"
             );
         }
 
         if (exerciseId == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Exercise id is required"
             );
         }
@@ -63,8 +61,7 @@ public class ExerciseLogService {
 
     public ExerciseLogDTO getExerciseLog(Integer id) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Exercise log id is required"
             );
         }
