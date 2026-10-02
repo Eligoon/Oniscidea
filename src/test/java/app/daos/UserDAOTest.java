@@ -85,4 +85,59 @@ public class UserDAOTest {
                 is("test@test.com")
         );
     }
+
+    @Test
+    void shouldUpdateUser() {
+
+        User user = new User(
+                "Original Name",
+                "update@test.com",
+                "password"
+        );
+
+        User createdUser =
+                userDAO.create(user);
+
+        createdUser.update(
+                "Updated Name",
+                "update@test.com",
+                "newpassword"
+        );
+
+        User updatedUser =
+                userDAO.update(createdUser);
+
+        assertThat(
+                updatedUser.getName(),
+                is("Updated Name")
+        );
+
+        assertThat(
+                updatedUser.getEmail(),
+                is("update@test.com")
+        );
+    }
+
+    @Test
+    void shouldDeleteUser() {
+
+        User user = new User(
+                "Delete User",
+                "delete@test.com",
+                "password"
+        );
+
+        User createdUser =
+                userDAO.create(user);
+
+        boolean deleted =
+                userDAO.delete(
+                        createdUser.getId()
+                );
+
+        assertThat(
+                deleted,
+                is(true)
+        );
+    }
 }
