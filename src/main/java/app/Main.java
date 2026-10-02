@@ -409,6 +409,16 @@ public class Main {
 
                     // Google Calendar
 
+                    config.routes.get(
+                            "/api/google-calendar/connect",
+                            googleOAuthController::connect
+                    );
+
+                    config.routes.get(
+                            "/api/google-calendar/callback",
+                            googleOAuthController::callback
+                    );
+
                     config.routes.post(
                             "/api/google-calendar/events",
                             googleCalendarController::createEvent
