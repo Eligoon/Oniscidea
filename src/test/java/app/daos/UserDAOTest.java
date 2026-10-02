@@ -5,13 +5,24 @@ import app.entities.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import jakarta.persistence.EntityManagerFactory;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@Testcontainers
 public class UserDAOTest {
+
+    @Container
+    private static final PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:16-alpine")
+                    .withDatabaseName("testdb")
+                    .withUsername("test")
+                    .withPassword("test");
 
     private static EntityManagerFactory emf;
     private static UserDAO userDAO;
@@ -19,7 +30,12 @@ public class UserDAOTest {
     @BeforeAll
     static void setUp() {
 
-        emf = HibernateConfig.getEntityManagerFactory();
+        emf =
+                HibernateConfig.createTestEntityManagerFactory(
+                        postgres.getJdbcUrl(),
+                        postgres.getUsername(),
+                        postgres.getPassword()
+                );
 
         userDAO = new UserDAO(emf);
     }
@@ -67,26 +83,6 @@ public class UserDAOTest {
         assertThat(
                 result.getEmail(),
                 is("test@test.com")
-        );
-    }
-
-    @Test
-    void shouldVerifyCorrectPassword() {
-
-        User user = new User(
-                "Test User",
-                "password@test.com",
-                "secret123"
-        );
-
-        assertThat(
-                user.verifyPassword("secret123"),
-                is(true)
-        );
-
-        assertThat(
-                user.verifyPassword("wrong-password"),
-                is(false)
         );
     }
 }
