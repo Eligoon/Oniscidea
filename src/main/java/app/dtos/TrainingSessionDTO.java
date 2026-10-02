@@ -10,6 +10,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Builder
 public class TrainingSessionDTO {
+
     private Integer id;
     private Integer calendarId;
     private Integer trainingProgramId;
@@ -17,5 +18,6 @@ public class TrainingSessionDTO {
     private LocalTime startTime;
     private LocalTime endTime;
     private boolean completed;
+    private String notes;
     private String googleEventId;
 }

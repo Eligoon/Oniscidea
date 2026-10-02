@@ -78,10 +78,14 @@ public class TrainingSession {
 
     public TrainingSession(
             LocalDate trainingDate,
+            LocalTime startTime,
+            LocalTime endTime,
             TrainingCalendar calendar,
             TrainingProgram trainingProgram
     ) {
         this.trainingDate = trainingDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.calendar = calendar;
         this.trainingProgram = trainingProgram;
         this.completed = false;

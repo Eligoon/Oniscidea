@@ -4,7 +4,6 @@ import app.dtos.TrainingSessionDTO;
 import app.services.TrainingSessionService;
 import io.javalin.http.Context;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class TrainingSessionController {
@@ -25,6 +24,8 @@ public class TrainingSessionController {
         TrainingSessionDTO session =
                 trainingSessionService.createTrainingSession(
                         request.getDate(),
+                        request.getStartTime(),
+                        request.getEndTime(),
                         request.getCalendarId(),
                         request.getTrainingProgramId()
                 );
@@ -67,6 +68,8 @@ public class TrainingSessionController {
                 trainingSessionService.updateTrainingSession(
                         id,
                         request.getDate(),
+                        request.getStartTime(),
+                        request.getEndTime(),
                         request.getCalendarId(),
                         request.getTrainingProgramId(),
                         request.isCompleted(),

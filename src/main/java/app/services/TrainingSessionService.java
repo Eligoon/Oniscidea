@@ -10,6 +10,7 @@ import app.entities.TrainingSession;
 import app.exceptions.ValidationException;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public class TrainingSessionService {
@@ -30,12 +31,32 @@ public class TrainingSessionService {
 
     public TrainingSessionDTO createTrainingSession(
             LocalDate trainingDate,
+            LocalTime startTime,
+            LocalTime endTime,
             Integer calendarId,
             Integer trainingProgramId
     ) {
         if (trainingDate == null) {
             throw new ValidationException(
                     "Training date is required"
+            );
+        }
+
+        if (startTime == null) {
+            throw new ValidationException(
+                    "Start time is required"
+            );
+        }
+
+        if (endTime == null) {
+            throw new ValidationException(
+                    "End time is required"
+            );
+        }
+
+        if (!endTime.isAfter(startTime)) {
+            throw new ValidationException(
+                    "End time must be after start time"
             );
         }
 
@@ -55,11 +76,15 @@ public class TrainingSessionService {
                 trainingCalendarDAO.getById(calendarId);
 
         TrainingProgram trainingProgram =
-                trainingProgramDAO.getById(trainingProgramId);
+                trainingProgramDAO.getById(
+                        trainingProgramId
+                );
 
         TrainingSession session =
                 new TrainingSession(
                         trainingDate,
+                        startTime,
+                        endTime,
                         calendar,
                         trainingProgram
                 );
@@ -70,8 +95,9 @@ public class TrainingSessionService {
         return toDTO(created);
     }
 
-    public TrainingSessionDTO getTrainingSession(Integer id) {
-
+    public TrainingSessionDTO getTrainingSession(
+            Integer id
+    ) {
         if (id == null) {
             throw new ValidationException(
                     "Training session id is required"
@@ -97,6 +123,8 @@ public class TrainingSessionService {
     public TrainingSessionDTO updateTrainingSession(
             Integer id,
             LocalDate trainingDate,
+            LocalTime startTime,
+            LocalTime endTime,
             Integer calendarId,
             Integer trainingProgramId,
             boolean completed,
@@ -114,6 +142,24 @@ public class TrainingSessionService {
             );
         }
 
+        if (startTime == null) {
+            throw new ValidationException(
+                    "Start time is required"
+            );
+        }
+
+        if (endTime == null) {
+            throw new ValidationException(
+                    "End time is required"
+            );
+        }
+
+        if (!endTime.isAfter(startTime)) {
+            throw new ValidationException(
+                    "End time must be after start time"
+            );
+        }
+
         if (calendarId == null) {
             throw new ValidationException(
                     "Calendar id is required"
@@ -126,24 +172,26 @@ public class TrainingSessionService {
             );
         }
 
-        TrainingSession existing =
+        TrainingSession session =
                 trainingSessionDAO.getById(id);
 
         TrainingCalendar calendar =
                 trainingCalendarDAO.getById(calendarId);
 
         TrainingProgram trainingProgram =
-                trainingProgramDAO.getById(trainingProgramId);
+                trainingProgramDAO.getById(
+                        trainingProgramId
+                );
 
-        TrainingSession session =
-                TrainingSession.builder()
-                        .id(existing.getId())
-                        .trainingDate(trainingDate)
-                        .completed(completed)
-                        .notes(notes)
-                        .calendar(calendar)
-                        .trainingProgram(trainingProgram)
-                        .build();
+        session.update(
+                trainingDate,
+                startTime,
+                endTime,
+                completed,
+                notes,
+                calendar,
+                trainingProgram
+        );
 
         TrainingSession updated =
                 trainingSessionDAO.update(session);
@@ -173,6 +221,7 @@ public class TrainingSessionService {
                 session.getStartTime(),
                 session.getEndTime(),
                 session.isCompleted(),
+                session.getNotes(),
                 session.getGoogleEventId()
         );
     }
