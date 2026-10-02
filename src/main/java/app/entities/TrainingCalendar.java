@@ -25,6 +25,9 @@ public class TrainingCalendar {
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String googleCalendarId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "profile_id", nullable = false)
     @ToString.Exclude
@@ -37,7 +40,8 @@ public class TrainingCalendar {
     )
     @ToString.Exclude
     @Builder.Default
-    private List<TrainingSession> trainingSessions = new ArrayList<>();
+    private List<TrainingSession> trainingSessions =
+            new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -55,38 +59,62 @@ public class TrainingCalendar {
         updatedAt = LocalDateTime.now();
     }
 
-    public TrainingCalendar(String name, Profile profile) {
+    public TrainingCalendar(
+            String name,
+            Profile profile
+    ) {
         this.name = name;
         this.profile = profile;
     }
 
+    public void setGoogleCalendarId(
+            String googleCalendarId
+    ) {
+        this.googleCalendarId = googleCalendarId;
+    }
+
     @Override
     public final boolean equals(Object o) {
+
         if (this == o)
             return true;
+
         if (o == null)
             return false;
 
         Class<?> oEffectiveClass = o instanceof HibernateProxy
-                ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass()
+                ? ((HibernateProxy) o)
+                .getHibernateLazyInitializer()
+                .getPersistentClass()
                 : o.getClass();
 
         Class<?> thisEffectiveClass = this instanceof HibernateProxy
-                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass()
+                ? ((HibernateProxy) this)
+                .getHibernateLazyInitializer()
+                .getPersistentClass()
                 : this.getClass();
 
         if (thisEffectiveClass != oEffectiveClass)
             return false;
 
-        TrainingCalendar that = (TrainingCalendar) o;
-        return getId() != null && Objects.equals(getId(), that.getId());
+        TrainingCalendar that =
+                (TrainingCalendar) o;
+
+        return getId() != null
+                && Objects.equals(
+                getId(),
+                that.getId()
+        );
     }
 
     @Override
     public final int hashCode() {
+
         return this instanceof HibernateProxy
-                ? ((HibernateProxy) this).getHibernateLazyInitializer()
-                .getPersistentClass().hashCode()
+                ? ((HibernateProxy) this)
+                .getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode()
                 : getClass().hashCode();
     }
 }
