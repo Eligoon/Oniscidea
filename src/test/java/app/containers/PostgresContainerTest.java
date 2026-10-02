@@ -1,5 +1,8 @@
 package app.containers;
 
+import app.config.HibernateConfig;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -18,8 +21,21 @@ public class PostgresContainerTest {
                     .withPassword("test");
 
     @Test
-    void postgresContainerIsRunning() {
+    void hibernateCanConnectToPostgresContainer() {
 
-        assertTrue(postgres.isRunning());
+        EntityManagerFactory emf =
+                HibernateConfig.createTestEntityManagerFactory(
+                        postgres.getJdbcUrl(),
+                        postgres.getUsername(),
+                        postgres.getPassword()
+                );
+
+        EntityManager entityManager =
+                emf.createEntityManager();
+
+        assertTrue(entityManager.isOpen());
+
+        entityManager.close();
+        emf.close();
     }
 }
