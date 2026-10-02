@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.Note;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -20,7 +22,7 @@ public class NoteDAO implements IDAO<Note, Integer> {
     @Override
     public Note create(Note note) {
         if (note == null) {
-            throw new ApiException(400, "Note is required");
+            throw new ValidationException("Note is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -35,9 +37,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create note failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create note failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -55,7 +57,7 @@ public class NoteDAO implements IDAO<Note, Integer> {
     @Override
     public Note getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Note id is required");
+            throw new ValidationException("Note id is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -66,12 +68,14 @@ public class NoteDAO implements IDAO<Note, Integer> {
                     return note;
                 }
 
-                throw new ApiException(404, "Note not found");
+                throw new ResourceNotFoundException(
+                        "Note not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get note failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get note failed",
+                        e
                 );
             }
         }
@@ -90,9 +94,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get notes failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get notes failed",
+                        e
                 );
             }
         }
@@ -101,7 +105,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
     @Override
     public Note update(Note note) {
         if (note == null || note.getId() == null) {
-            throw new ApiException(400, "Note id is required");
+            throw new ValidationException(
+                    "Note id is required"
+            );
         }
 
         Note updated;
@@ -114,7 +120,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
                         em.find(Note.class, note.getId());
 
                 if (existing == null) {
-                    throw new ApiException(404, "Note not found");
+                    throw new ResourceNotFoundException(
+                            "Note not found"
+                    );
                 }
 
                 updated = em.merge(note);
@@ -125,9 +133,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update note failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update note failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -145,7 +153,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Note id is required");
+            throw new ValidationException(
+                    "Note id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -155,7 +165,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
                 Note note = em.find(Note.class, id);
 
                 if (note == null) {
-                    throw new ApiException(404, "Note not found");
+                    throw new ResourceNotFoundException(
+                            "Note not found"
+                    );
                 }
 
                 em.remove(note);
@@ -166,9 +178,9 @@ public class NoteDAO implements IDAO<Note, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete note failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete note failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

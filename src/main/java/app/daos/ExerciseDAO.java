@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.Exercise;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -20,7 +22,7 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
     @Override
     public Exercise create(Exercise exercise) {
         if (exercise == null) {
-            throw new ApiException(400, "Exercise is required");
+            throw new ValidationException("Exercise is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -35,9 +37,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create exercise failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create exercise failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -55,7 +57,7 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
     @Override
     public Exercise getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Exercise id is required");
+            throw new ValidationException("Exercise id is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -66,12 +68,14 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
                     return exercise;
                 }
 
-                throw new ApiException(404, "Exercise not found");
+                throw new ResourceNotFoundException(
+                        "Exercise not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get exercise failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get exercise failed",
+                        e
                 );
             }
         }
@@ -90,9 +94,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get exercises failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get exercises failed",
+                        e
                 );
             }
         }
@@ -101,7 +105,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
     @Override
     public Exercise update(Exercise exercise) {
         if (exercise == null || exercise.getId() == null) {
-            throw new ApiException(400, "Exercise id is required");
+            throw new ValidationException(
+                    "Exercise id is required"
+            );
         }
 
         Exercise updated;
@@ -114,7 +120,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
                         em.find(Exercise.class, exercise.getId());
 
                 if (existing == null) {
-                    throw new ApiException(404, "Exercise not found");
+                    throw new ResourceNotFoundException(
+                            "Exercise not found"
+                    );
                 }
 
                 updated = em.merge(exercise);
@@ -125,9 +133,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update exercise failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update exercise failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -145,7 +153,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Exercise id is required");
+            throw new ValidationException(
+                    "Exercise id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -155,7 +165,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
                 Exercise exercise = em.find(Exercise.class, id);
 
                 if (exercise == null) {
-                    throw new ApiException(404, "Exercise not found");
+                    throw new ResourceNotFoundException(
+                            "Exercise not found"
+                    );
                 }
 
                 em.remove(exercise);
@@ -166,9 +178,9 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete exercise failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete exercise failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

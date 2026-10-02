@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.SetLog;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -20,7 +22,7 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
     @Override
     public SetLog create(SetLog setLog) {
         if (setLog == null) {
-            throw new ApiException(400, "Set log is required");
+            throw new ValidationException("Set log is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -35,9 +37,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create set log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create set log failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -55,7 +57,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
     @Override
     public SetLog getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Set log id is required");
+            throw new ValidationException(
+                    "Set log id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -66,12 +70,14 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
                     return setLog;
                 }
 
-                throw new ApiException(404, "Set log not found");
+                throw new ResourceNotFoundException(
+                        "Set log not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get set log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get set log failed",
+                        e
                 );
             }
         }
@@ -90,9 +96,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get set logs failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get set logs failed",
+                        e
                 );
             }
         }
@@ -101,7 +107,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
     @Override
     public SetLog update(SetLog setLog) {
         if (setLog == null || setLog.getId() == null) {
-            throw new ApiException(400, "Set log id is required");
+            throw new ValidationException(
+                    "Set log id is required"
+            );
         }
 
         SetLog updated;
@@ -114,7 +122,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
                         em.find(SetLog.class, setLog.getId());
 
                 if (existing == null) {
-                    throw new ApiException(404, "Set log not found");
+                    throw new ResourceNotFoundException(
+                            "Set log not found"
+                    );
                 }
 
                 updated = em.merge(setLog);
@@ -125,9 +135,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update set log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update set log failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -145,7 +155,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Set log id is required");
+            throw new ValidationException(
+                    "Set log id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -155,7 +167,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
                 SetLog setLog = em.find(SetLog.class, id);
 
                 if (setLog == null) {
-                    throw new ApiException(404, "Set log not found");
+                    throw new ResourceNotFoundException(
+                            "Set log not found"
+                    );
                 }
 
                 em.remove(setLog);
@@ -166,9 +180,9 @@ public class SetLogDAO implements IDAO<SetLog, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete set log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete set log failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

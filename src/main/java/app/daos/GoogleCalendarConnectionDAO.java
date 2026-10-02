@@ -1,10 +1,14 @@
 package app.daos;
 
 import app.entities.GoogleCalendarConnection;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
+
+import java.util.List;
 
 public class GoogleCalendarConnectionDAO
         implements IDAO<GoogleCalendarConnection, Integer> {
@@ -15,11 +19,16 @@ public class GoogleCalendarConnectionDAO
         this.emf = emf;
     }
 
+
     @Override
-    public GoogleCalendarConnection create(GoogleCalendarConnection connection) {
+    public GoogleCalendarConnection create(
+            GoogleCalendarConnection connection
+    ) {
 
         if (connection == null) {
-            throw new ApiException(400, "Google Calendar connection cannot be null");
+            throw new ValidationException(
+                    "Google Calendar connection cannot be null"
+            );
         }
 
         EntityManager em = emf.createEntityManager();
@@ -33,16 +42,24 @@ public class GoogleCalendarConnectionDAO
 
             return connection;
 
+        } catch (PersistenceException e) {
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            throw new DatabaseException(
+                    "Could not create Google Calendar connection",
+                    e
+            );
+
         } catch (RuntimeException e) {
 
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
 
-            throw new ApiException(
-                    500,
-                    "Could not create Google Calendar connection"
-            );
+            throw e;
 
         } finally {
             em.close();
@@ -53,7 +70,9 @@ public class GoogleCalendarConnectionDAO
     public GoogleCalendarConnection getById(Integer id) {
 
         if (id == null) {
-            throw new ApiException(400, "Google Calendar connection ID cannot be null");
+            throw new ValidationException(
+                    "Google Calendar connection ID cannot be null"
+            );
         }
 
         EntityManager em = emf.createEntityManager();
@@ -64,13 +83,19 @@ public class GoogleCalendarConnectionDAO
                     em.find(GoogleCalendarConnection.class, id);
 
             if (connection == null) {
-                throw new ApiException(
-                        404,
+                throw new ResourceNotFoundException(
                         "Google Calendar connection not found"
                 );
             }
 
             return connection;
+
+        } catch (PersistenceException e) {
+
+            throw new DatabaseException(
+                    "Could not get Google Calendar connection",
+                    e
+            );
 
         } finally {
             em.close();
@@ -78,7 +103,7 @@ public class GoogleCalendarConnectionDAO
     }
 
     @Override
-    public java.util.List<GoogleCalendarConnection> getAll() {
+    public List<GoogleCalendarConnection> getAll() {
 
         EntityManager em = emf.createEntityManager();
 
@@ -88,6 +113,13 @@ public class GoogleCalendarConnectionDAO
                     "SELECT g FROM GoogleCalendarConnection g",
                     GoogleCalendarConnection.class
             ).getResultList();
+
+        } catch (PersistenceException e) {
+
+            throw new DatabaseException(
+                    "Could not get Google Calendar connections",
+                    e
+            );
 
         } finally {
             em.close();
@@ -100,8 +132,7 @@ public class GoogleCalendarConnectionDAO
     ) {
 
         if (connection == null || connection.getId() == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Google Calendar connection and ID are required"
             );
         }
@@ -119,8 +150,7 @@ public class GoogleCalendarConnectionDAO
                     );
 
             if (existing == null) {
-                throw new ApiException(
-                        404,
+                throw new ResourceNotFoundException(
                         "Google Calendar connection not found"
                 );
             }
@@ -132,13 +162,16 @@ public class GoogleCalendarConnectionDAO
 
             return updated;
 
-        } catch (ApiException e) {
+        } catch (PersistenceException e) {
 
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
 
-            throw e;
+            throw new DatabaseException(
+                    "Could not update Google Calendar connection",
+                    e
+            );
 
         } catch (RuntimeException e) {
 
@@ -146,10 +179,7 @@ public class GoogleCalendarConnectionDAO
                 em.getTransaction().rollback();
             }
 
-            throw new ApiException(
-                    500,
-                    "Could not update Google Calendar connection"
-            );
+            throw e;
 
         } finally {
             em.close();
@@ -160,8 +190,7 @@ public class GoogleCalendarConnectionDAO
     public boolean delete(Integer id) {
 
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Google Calendar connection ID cannot be null"
             );
         }
@@ -179,8 +208,7 @@ public class GoogleCalendarConnectionDAO
                     );
 
             if (connection == null) {
-                throw new ApiException(
-                        404,
+                throw new ResourceNotFoundException(
                         "Google Calendar connection not found"
                 );
             }
@@ -191,13 +219,16 @@ public class GoogleCalendarConnectionDAO
 
             return true;
 
-        } catch (ApiException e) {
+        } catch (PersistenceException e) {
 
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
 
-            throw e;
+            throw new DatabaseException(
+                    "Could not delete Google Calendar connection",
+                    e
+            );
 
         } catch (RuntimeException e) {
 
@@ -205,10 +236,7 @@ public class GoogleCalendarConnectionDAO
                 em.getTransaction().rollback();
             }
 
-            throw new ApiException(
-                    500,
-                    "Could not delete Google Calendar connection"
-            );
+            throw e;
 
         } finally {
             em.close();
@@ -218,14 +246,16 @@ public class GoogleCalendarConnectionDAO
     public GoogleCalendarConnection getByUserId(Integer userId) {
 
         if (userId == null) {
-            throw new ApiException(400, "User ID cannot be null");
+            throw new ValidationException(
+                    "User ID cannot be null"
+            );
         }
 
         EntityManager em = emf.createEntityManager();
 
         try {
 
-            java.util.List<GoogleCalendarConnection> connections =
+            List<GoogleCalendarConnection> connections =
                     em.createQuery(
                                     """
                                     SELECT g
@@ -242,6 +272,13 @@ public class GoogleCalendarConnectionDAO
             }
 
             return connections.get(0);
+
+        } catch (PersistenceException e) {
+
+            throw new DatabaseException(
+                    "Could not get Google Calendar connection by user ID",
+                    e
+            );
 
         } finally {
             em.close();

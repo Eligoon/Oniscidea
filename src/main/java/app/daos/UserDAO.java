@@ -2,6 +2,9 @@ package app.daos;
 
 import app.entities.User;
 import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -20,7 +23,7 @@ public class UserDAO implements IDAO<User, Integer> {
     @Override
     public User create(User user) {
         if (user == null) {
-            throw new ApiException(400, "User is required");
+            throw new ValidationException("User is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -35,9 +38,9 @@ public class UserDAO implements IDAO<User, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create user failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create user failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -61,15 +64,15 @@ public class UserDAO implements IDAO<User, Integer> {
     public User createUser(String name, String email, String password) {
 
         if (name == null || name.isBlank()) {
-            throw new ApiException(400, "Name is required");
+            throw new ValidationException("Name is required");
         }
 
         if (email == null || email.isBlank()) {
-            throw new ApiException(400, "Email is required");
+            throw new ValidationException("Email is required");
         }
 
         if (password == null || password.isBlank()) {
-            throw new ApiException(400, "Password is required");
+            throw new ValidationException("Password is required");
         }
 
         User user = new User(name, email, password);
@@ -86,11 +89,11 @@ public class UserDAO implements IDAO<User, Integer> {
     public User getVerifiedUser(String email, String password) {
 
         if (email == null || email.isBlank()) {
-            throw new ApiException(400, "Email is required");
+            throw new ValidationException("Email is required");
         }
 
         if (password == null || password.isBlank()) {
-            throw new ApiException(400, "Password is required");
+            throw new ValidationException("Password is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -124,9 +127,9 @@ public class UserDAO implements IDAO<User, Integer> {
                 return user;
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Verify user failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Verify user failed",
+                        e
                 );
             }
         }
@@ -135,7 +138,7 @@ public class UserDAO implements IDAO<User, Integer> {
     @Override
     public User getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "User id is required");
+            throw new ValidationException("User id is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -146,12 +149,14 @@ public class UserDAO implements IDAO<User, Integer> {
                     return user;
                 }
 
-                throw new ApiException(404, "User not found");
+                throw new ResourceNotFoundException(
+                        "User not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get user failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get user failed",
+                        e
                 );
             }
         }
@@ -162,14 +167,17 @@ public class UserDAO implements IDAO<User, Integer> {
         try (EntityManager em = emf.createEntityManager()) {
             try {
                 TypedQuery<User> query =
-                        em.createQuery("SELECT u FROM User u", User.class);
+                        em.createQuery(
+                                "SELECT u FROM User u",
+                                User.class
+                        );
 
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get users failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get users failed",
+                        e
                 );
             }
         }
@@ -178,7 +186,9 @@ public class UserDAO implements IDAO<User, Integer> {
     @Override
     public User update(User user) {
         if (user == null || user.getId() == null) {
-            throw new ApiException(400, "User id is required");
+            throw new ValidationException(
+                    "User id is required"
+            );
         }
 
         User updated;
@@ -187,10 +197,15 @@ public class UserDAO implements IDAO<User, Integer> {
             em.getTransaction().begin();
 
             try {
-                User existing = em.find(User.class, user.getId());
+                User existing = em.find(
+                        User.class,
+                        user.getId()
+                );
 
                 if (existing == null) {
-                    throw new ApiException(404, "User not found");
+                    throw new ResourceNotFoundException(
+                            "User not found"
+                    );
                 }
 
                 updated = em.merge(user);
@@ -201,9 +216,9 @@ public class UserDAO implements IDAO<User, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update user failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update user failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -221,7 +236,9 @@ public class UserDAO implements IDAO<User, Integer> {
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "User id is required");
+            throw new ValidationException(
+                    "User id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -231,7 +248,9 @@ public class UserDAO implements IDAO<User, Integer> {
                 User user = em.find(User.class, id);
 
                 if (user == null) {
-                    throw new ApiException(404, "User not found");
+                    throw new ResourceNotFoundException(
+                            "User not found"
+                    );
                 }
 
                 em.remove(user);
@@ -242,9 +261,9 @@ public class UserDAO implements IDAO<User, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete user failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete user failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

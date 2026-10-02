@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.TrainingCalendar;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -21,7 +23,7 @@ public class TrainingCalendarDAO
     @Override
     public TrainingCalendar create(TrainingCalendar calendar) {
         if (calendar == null) {
-            throw new ApiException(400, "Calendar is required");
+            throw new ValidationException("Calendar is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -36,9 +38,9 @@ public class TrainingCalendarDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create calendar failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create calendar failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -56,7 +58,9 @@ public class TrainingCalendarDAO
     @Override
     public TrainingCalendar getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Calendar id is required");
+            throw new ValidationException(
+                    "Calendar id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -68,12 +72,14 @@ public class TrainingCalendarDAO
                     return calendar;
                 }
 
-                throw new ApiException(404, "Calendar not found");
+                throw new ResourceNotFoundException(
+                        "Calendar not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get calendar failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get calendar failed",
+                        e
                 );
             }
         }
@@ -92,9 +98,9 @@ public class TrainingCalendarDAO
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get calendars failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get calendars failed",
+                        e
                 );
             }
         }
@@ -103,7 +109,9 @@ public class TrainingCalendarDAO
     @Override
     public TrainingCalendar update(TrainingCalendar calendar) {
         if (calendar == null || calendar.getId() == null) {
-            throw new ApiException(400, "Calendar id is required");
+            throw new ValidationException(
+                    "Calendar id is required"
+            );
         }
 
         TrainingCalendar updated;
@@ -113,10 +121,15 @@ public class TrainingCalendarDAO
 
             try {
                 TrainingCalendar existing =
-                        em.find(TrainingCalendar.class, calendar.getId());
+                        em.find(
+                                TrainingCalendar.class,
+                                calendar.getId()
+                        );
 
                 if (existing == null) {
-                    throw new ApiException(404, "Calendar not found");
+                    throw new ResourceNotFoundException(
+                            "Calendar not found"
+                    );
                 }
 
                 updated = em.merge(calendar);
@@ -127,9 +140,9 @@ public class TrainingCalendarDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update calendar failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update calendar failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -147,7 +160,9 @@ public class TrainingCalendarDAO
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Calendar id is required");
+            throw new ValidationException(
+                    "Calendar id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -155,10 +170,15 @@ public class TrainingCalendarDAO
 
             try {
                 TrainingCalendar calendar =
-                        em.find(TrainingCalendar.class, id);
+                        em.find(
+                                TrainingCalendar.class,
+                                id
+                        );
 
                 if (calendar == null) {
-                    throw new ApiException(404, "Calendar not found");
+                    throw new ResourceNotFoundException(
+                            "Calendar not found"
+                    );
                 }
 
                 em.remove(calendar);
@@ -169,9 +189,9 @@ public class TrainingCalendarDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete calendar failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete calendar failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

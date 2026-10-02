@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.TrainingSession;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -21,7 +23,9 @@ public class TrainingSessionDAO
     @Override
     public TrainingSession create(TrainingSession session) {
         if (session == null) {
-            throw new ApiException(400, "Training session is required");
+            throw new ValidationException(
+                    "Training session is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -36,10 +40,9 @@ public class TrainingSessionDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create training session failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Create training session failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -57,7 +60,9 @@ public class TrainingSessionDAO
     @Override
     public TrainingSession getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Training session id is required");
+            throw new ValidationException(
+                    "Training session id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -69,16 +74,14 @@ public class TrainingSessionDAO
                     return session;
                 }
 
-                throw new ApiException(
-                        404,
+                throw new ResourceNotFoundException(
                         "Training session not found"
                 );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get training session failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Get training session failed",
+                        e
                 );
             }
         }
@@ -97,10 +100,9 @@ public class TrainingSessionDAO
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get training sessions failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Get training sessions failed",
+                        e
                 );
             }
         }
@@ -109,8 +111,7 @@ public class TrainingSessionDAO
     @Override
     public TrainingSession update(TrainingSession session) {
         if (session == null || session.getId() == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training session id is required"
             );
         }
@@ -128,8 +129,7 @@ public class TrainingSessionDAO
                         );
 
                 if (existing == null) {
-                    throw new ApiException(
-                            404,
+                    throw new ResourceNotFoundException(
                             "Training session not found"
                     );
                 }
@@ -142,10 +142,9 @@ public class TrainingSessionDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update training session failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Update training session failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -163,8 +162,7 @@ public class TrainingSessionDAO
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training session id is required"
             );
         }
@@ -174,11 +172,13 @@ public class TrainingSessionDAO
 
             try {
                 TrainingSession session =
-                        em.find(TrainingSession.class, id);
+                        em.find(
+                                TrainingSession.class,
+                                id
+                        );
 
                 if (session == null) {
-                    throw new ApiException(
-                            404,
+                    throw new ResourceNotFoundException(
                             "Training session not found"
                     );
                 }
@@ -191,10 +191,9 @@ public class TrainingSessionDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete training session failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Delete training session failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.TrainingProgramExercise;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -21,8 +23,7 @@ public class TrainingProgramExerciseDAO
     @Override
     public TrainingProgramExercise create(TrainingProgramExercise entity) {
         if (entity == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program exercise is required"
             );
         }
@@ -39,10 +40,9 @@ public class TrainingProgramExerciseDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create training program exercise failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Create training program exercise failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -60,8 +60,7 @@ public class TrainingProgramExerciseDAO
     @Override
     public TrainingProgramExercise getById(Integer id) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program exercise id is required"
             );
         }
@@ -75,16 +74,14 @@ public class TrainingProgramExerciseDAO
                     return entity;
                 }
 
-                throw new ApiException(
-                        404,
+                throw new ResourceNotFoundException(
                         "Training program exercise not found"
                 );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get training program exercise failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Get training program exercise failed",
+                        e
                 );
             }
         }
@@ -103,10 +100,9 @@ public class TrainingProgramExerciseDAO
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get training program exercises failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Get training program exercises failed",
+                        e
                 );
             }
         }
@@ -117,8 +113,7 @@ public class TrainingProgramExerciseDAO
             TrainingProgramExercise entity) {
 
         if (entity == null || entity.getId() == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program exercise id is required"
             );
         }
@@ -136,8 +131,7 @@ public class TrainingProgramExerciseDAO
                         );
 
                 if (existing == null) {
-                    throw new ApiException(
-                            404,
+                    throw new ResourceNotFoundException(
                             "Training program exercise not found"
                     );
                 }
@@ -150,10 +144,9 @@ public class TrainingProgramExerciseDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update training program exercise failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Update training program exercise failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -171,8 +164,7 @@ public class TrainingProgramExerciseDAO
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program exercise id is required"
             );
         }
@@ -185,8 +177,7 @@ public class TrainingProgramExerciseDAO
                         em.find(TrainingProgramExercise.class, id);
 
                 if (entity == null) {
-                    throw new ApiException(
-                            404,
+                    throw new ResourceNotFoundException(
                             "Training program exercise not found"
                     );
                 }
@@ -199,10 +190,9 @@ public class TrainingProgramExerciseDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete training program exercise failed: "
-                                + e.getMessage()
+                throw new DatabaseException(
+                        "Delete training program exercise failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

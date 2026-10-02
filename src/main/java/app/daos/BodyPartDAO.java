@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.BodyPart;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -20,7 +22,7 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
     @Override
     public BodyPart create(BodyPart bodyPart) {
         if (bodyPart == null) {
-            throw new ApiException(400, "Body part is required");
+            throw new ValidationException("Body part is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -35,9 +37,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create body part failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create body part failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -55,7 +57,7 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
     @Override
     public BodyPart getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Body part id is required");
+            throw new ValidationException("Body part id is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -66,12 +68,14 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
                     return bodyPart;
                 }
 
-                throw new ApiException(404, "Body part not found");
+                throw new ResourceNotFoundException(
+                        "Body part not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get body part failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get body part failed",
+                        e
                 );
             }
         }
@@ -90,9 +94,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get body parts failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get body parts failed",
+                        e
                 );
             }
         }
@@ -101,7 +105,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
     @Override
     public BodyPart update(BodyPart bodyPart) {
         if (bodyPart == null || bodyPart.getId() == null) {
-            throw new ApiException(400, "Body part id is required");
+            throw new ValidationException(
+                    "Body part id is required"
+            );
         }
 
         BodyPart updated;
@@ -114,7 +120,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
                         em.find(BodyPart.class, bodyPart.getId());
 
                 if (existing == null) {
-                    throw new ApiException(404, "Body part not found");
+                    throw new ResourceNotFoundException(
+                            "Body part not found"
+                    );
                 }
 
                 updated = em.merge(bodyPart);
@@ -125,9 +133,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update body part failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update body part failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -145,7 +153,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Body part id is required");
+            throw new ValidationException(
+                    "Body part id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -155,7 +165,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
                 BodyPart bodyPart = em.find(BodyPart.class, id);
 
                 if (bodyPart == null) {
-                    throw new ApiException(404, "Body part not found");
+                    throw new ResourceNotFoundException(
+                            "Body part not found"
+                    );
                 }
 
                 em.remove(bodyPart);
@@ -166,9 +178,9 @@ public class BodyPartDAO implements IDAO<BodyPart, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete body part failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete body part failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

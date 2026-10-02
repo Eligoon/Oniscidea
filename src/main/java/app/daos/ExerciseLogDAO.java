@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.ExerciseLog;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -20,7 +22,7 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
     @Override
     public ExerciseLog create(ExerciseLog log) {
         if (log == null) {
-            throw new ApiException(400, "Exercise log is required");
+            throw new ValidationException("Exercise log is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -35,9 +37,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create exercise log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create exercise log failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -55,7 +57,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
     @Override
     public ExerciseLog getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Exercise log id is required");
+            throw new ValidationException(
+                    "Exercise log id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -66,12 +70,14 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
                     return log;
                 }
 
-                throw new ApiException(404, "Exercise log not found");
+                throw new ResourceNotFoundException(
+                        "Exercise log not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get exercise log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get exercise log failed",
+                        e
                 );
             }
         }
@@ -90,9 +96,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get exercise logs failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get exercise logs failed",
+                        e
                 );
             }
         }
@@ -101,7 +107,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
     @Override
     public ExerciseLog update(ExerciseLog log) {
         if (log == null || log.getId() == null) {
-            throw new ApiException(400, "Exercise log id is required");
+            throw new ValidationException(
+                    "Exercise log id is required"
+            );
         }
 
         ExerciseLog updated;
@@ -114,7 +122,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
                         em.find(ExerciseLog.class, log.getId());
 
                 if (existing == null) {
-                    throw new ApiException(404, "Exercise log not found");
+                    throw new ResourceNotFoundException(
+                            "Exercise log not found"
+                    );
                 }
 
                 updated = em.merge(log);
@@ -125,9 +135,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update exercise log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update exercise log failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -145,7 +155,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Exercise log id is required");
+            throw new ValidationException(
+                    "Exercise log id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -155,7 +167,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
                 ExerciseLog log = em.find(ExerciseLog.class, id);
 
                 if (log == null) {
-                    throw new ApiException(404, "Exercise log not found");
+                    throw new ResourceNotFoundException(
+                            "Exercise log not found"
+                    );
                 }
 
                 em.remove(log);
@@ -166,9 +180,9 @@ public class ExerciseLogDAO implements IDAO<ExerciseLog, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete exercise log failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete exercise log failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

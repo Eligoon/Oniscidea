@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.Profile;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -20,7 +22,7 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
     @Override
     public Profile create(Profile profile) {
         if (profile == null) {
-            throw new ApiException(400, "Profile is required");
+            throw new ValidationException("Profile is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -35,9 +37,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create profile failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create profile failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -55,7 +57,7 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
     @Override
     public Profile getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Profile id is required");
+            throw new ValidationException("Profile id is required");
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -66,12 +68,14 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
                     return profile;
                 }
 
-                throw new ApiException(404, "Profile not found");
+                throw new ResourceNotFoundException(
+                        "Profile not found"
+                );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get profile failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get profile failed",
+                        e
                 );
             }
         }
@@ -90,9 +94,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get profiles failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get profiles failed",
+                        e
                 );
             }
         }
@@ -101,7 +105,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
     @Override
     public Profile update(Profile profile) {
         if (profile == null || profile.getId() == null) {
-            throw new ApiException(400, "Profile id is required");
+            throw new ValidationException(
+                    "Profile id is required"
+            );
         }
 
         Profile updated;
@@ -114,7 +120,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
                         em.find(Profile.class, profile.getId());
 
                 if (existing == null) {
-                    throw new ApiException(404, "Profile not found");
+                    throw new ResourceNotFoundException(
+                            "Profile not found"
+                    );
                 }
 
                 updated = em.merge(profile);
@@ -125,9 +133,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update profile failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update profile failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -145,7 +153,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Profile id is required");
+            throw new ValidationException(
+                    "Profile id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -155,7 +165,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
                 Profile profile = em.find(Profile.class, id);
 
                 if (profile == null) {
-                    throw new ApiException(404, "Profile not found");
+                    throw new ResourceNotFoundException(
+                            "Profile not found"
+                    );
                 }
 
                 em.remove(profile);
@@ -166,9 +178,9 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete profile failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete profile failed",
+                        e
                 );
 
             } catch (RuntimeException e) {

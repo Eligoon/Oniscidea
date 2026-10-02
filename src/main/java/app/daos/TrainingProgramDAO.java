@@ -1,7 +1,9 @@
 package app.daos;
 
 import app.entities.TrainingProgram;
-import app.exceptions.ApiException;
+import app.exceptions.DatabaseException;
+import app.exceptions.ResourceNotFoundException;
+import app.exceptions.ValidationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
@@ -21,7 +23,9 @@ public class TrainingProgramDAO
     @Override
     public TrainingProgram create(TrainingProgram program) {
         if (program == null) {
-            throw new ApiException(400, "Training program is required");
+            throw new ValidationException(
+                    "Training program is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -36,9 +40,9 @@ public class TrainingProgramDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Create training program failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Create training program failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -56,7 +60,9 @@ public class TrainingProgramDAO
     @Override
     public TrainingProgram getById(Integer id) {
         if (id == null) {
-            throw new ApiException(400, "Training program id is required");
+            throw new ValidationException(
+                    "Training program id is required"
+            );
         }
 
         try (EntityManager em = emf.createEntityManager()) {
@@ -68,15 +74,14 @@ public class TrainingProgramDAO
                     return program;
                 }
 
-                throw new ApiException(
-                        404,
+                throw new ResourceNotFoundException(
                         "Training program not found"
                 );
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get training program failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get training program failed",
+                        e
                 );
             }
         }
@@ -95,9 +100,9 @@ public class TrainingProgramDAO
                 return query.getResultList();
 
             } catch (PersistenceException e) {
-                throw new ApiException(
-                        500,
-                        "Get training programs failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Get training programs failed",
+                        e
                 );
             }
         }
@@ -106,8 +111,7 @@ public class TrainingProgramDAO
     @Override
     public TrainingProgram update(TrainingProgram program) {
         if (program == null || program.getId() == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
@@ -119,11 +123,13 @@ public class TrainingProgramDAO
 
             try {
                 TrainingProgram existing =
-                        em.find(TrainingProgram.class, program.getId());
+                        em.find(
+                                TrainingProgram.class,
+                                program.getId()
+                        );
 
                 if (existing == null) {
-                    throw new ApiException(
-                            404,
+                    throw new ResourceNotFoundException(
                             "Training program not found"
                     );
                 }
@@ -136,9 +142,9 @@ public class TrainingProgramDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Update training program failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Update training program failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
@@ -156,8 +162,7 @@ public class TrainingProgramDAO
     @Override
     public boolean delete(Integer id) {
         if (id == null) {
-            throw new ApiException(
-                    400,
+            throw new ValidationException(
                     "Training program id is required"
             );
         }
@@ -167,11 +172,13 @@ public class TrainingProgramDAO
 
             try {
                 TrainingProgram program =
-                        em.find(TrainingProgram.class, id);
+                        em.find(
+                                TrainingProgram.class,
+                                id
+                        );
 
                 if (program == null) {
-                    throw new ApiException(
-                            404,
+                    throw new ResourceNotFoundException(
                             "Training program not found"
                     );
                 }
@@ -184,9 +191,9 @@ public class TrainingProgramDAO
                     em.getTransaction().rollback();
                 }
 
-                throw new ApiException(
-                        500,
-                        "Delete training program failed: " + e.getMessage()
+                throw new DatabaseException(
+                        "Delete training program failed",
+                        e
                 );
 
             } catch (RuntimeException e) {
