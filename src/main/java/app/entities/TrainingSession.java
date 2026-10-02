@@ -6,6 +6,7 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,11 +27,17 @@ public class TrainingSession {
     @Column(nullable = false)
     private LocalDate trainingDate;
 
+    private LocalTime startTime;
+
+    private LocalTime endTime;
+
     @Column(nullable = false)
     private boolean completed;
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    private String googleEventId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "calendar_id", nullable = false)
@@ -49,7 +56,8 @@ public class TrainingSession {
     )
     @ToString.Exclude
     @Builder.Default
-    private List<ExerciseLog> exerciseLogs = new ArrayList<>();
+    private List<ExerciseLog> exerciseLogs =
+            new ArrayList<>();
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -79,33 +87,72 @@ public class TrainingSession {
         this.completed = false;
     }
 
+    public void update(
+            LocalDate trainingDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            boolean completed,
+            String notes,
+            TrainingCalendar calendar,
+            TrainingProgram trainingProgram
+    ) {
+        this.trainingDate = trainingDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.completed = completed;
+        this.notes = notes;
+        this.calendar = calendar;
+        this.trainingProgram = trainingProgram;
+    }
+
+    public void setGoogleEventId(
+            String googleEventId
+    ) {
+        this.googleEventId = googleEventId;
+    }
+
     @Override
     public final boolean equals(Object o) {
+
         if (this == o)
             return true;
+
         if (o == null)
             return false;
 
         Class<?> oEffectiveClass = o instanceof HibernateProxy
-                ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass()
+                ? ((HibernateProxy) o)
+                .getHibernateLazyInitializer()
+                .getPersistentClass()
                 : o.getClass();
 
         Class<?> thisEffectiveClass = this instanceof HibernateProxy
-                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass()
+                ? ((HibernateProxy) this)
+                .getHibernateLazyInitializer()
+                .getPersistentClass()
                 : this.getClass();
 
         if (thisEffectiveClass != oEffectiveClass)
             return false;
 
-        TrainingSession that = (TrainingSession) o;
-        return getId() != null && Objects.equals(getId(), that.getId());
+        TrainingSession that =
+                (TrainingSession) o;
+
+        return getId() != null
+                && Objects.equals(
+                getId(),
+                that.getId()
+        );
     }
 
     @Override
     public final int hashCode() {
+
         return this instanceof HibernateProxy
-                ? ((HibernateProxy) this).getHibernateLazyInitializer()
-                .getPersistentClass().hashCode()
+                ? ((HibernateProxy) this)
+                .getHibernateLazyInitializer()
+                .getPersistentClass()
+                .hashCode()
                 : getClass().hashCode();
     }
 }
