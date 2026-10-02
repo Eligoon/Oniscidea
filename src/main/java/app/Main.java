@@ -8,8 +8,13 @@ import app.exceptions.ApiException;
 import app.services.*;
 import io.javalin.Javalin;
 import jakarta.persistence.EntityManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
 
@@ -211,7 +216,6 @@ public class Main {
                 );
 
 
-
         Javalin app =
                 Javalin.create(config -> {
 
@@ -243,6 +247,23 @@ public class Main {
                                 );
                             }
                     );
+
+                    config.routes.before(ctx -> {
+                        logger.info(
+                                "Incoming request: {} {}",
+                                ctx.method(),
+                                ctx.path()
+                        );
+                    });
+
+                    config.routes.after(ctx -> {
+                        logger.info(
+                                "Response: {} {} -> {}",
+                                ctx.method(),
+                                ctx.path(),
+                                ctx.status()
+                        );
+                    });
 
                     // Home
                     config.routes.get(
