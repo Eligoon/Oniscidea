@@ -22,6 +22,36 @@ public final class HibernateConfig {
         return emf;
     }
 
+    public static EntityManagerFactory createTestEntityManagerFactory(
+            String jdbcUrl,
+            String username,
+            String password
+    ) {
+        Properties props = HibernateBaseProperties.createBase();
+
+        props.put(
+                "hibernate.hbm2ddl.auto",
+                "create"
+        );
+
+        props.put(
+                "hibernate.connection.url",
+                jdbcUrl
+        );
+
+        props.put(
+                "hibernate.connection.username",
+                username
+        );
+
+        props.put(
+                "hibernate.connection.password",
+                password
+        );
+
+        return HibernateEmfBuilder.build(props);
+    }
+
     private static Properties buildProps() {
         Properties props = HibernateBaseProperties.createBase();
 
@@ -38,18 +68,52 @@ public final class HibernateConfig {
 
     private static void setDeployedProperties(Properties props) {
         String dbName = System.getenv("DB_NAME");
-        props.setProperty("hibernate.connection.url", System.getenv("CONNECTION_STR") + dbName);
-        props.setProperty("hibernate.connection.username", System.getenv("DB_USERNAME"));
-        props.setProperty("hibernate.connection.password", System.getenv("DB_PASSWORD"));
+        props.setProperty(
+                "hibernate.connection.url",
+                System.getenv("CONNECTION_STR") + dbName
+        );
+        props.setProperty(
+                "hibernate.connection.username",
+                System.getenv("DB_USERNAME")
+        );
+        props.setProperty(
+                "hibernate.connection.password",
+                System.getenv("DB_PASSWORD")
+        );
     }
 
     private static void setDevProperties(Properties props) {
-        String dbName = Utils.getPropertyValue("DB_NAME", "config.properties");
-        String username = Utils.getPropertyValue("DB_USERNAME", "config.properties");
-        String password = Utils.getPropertyValue("DB_PASSWORD", "config.properties");
+        String dbName =
+                Utils.getPropertyValue(
+                        "DB_NAME",
+                        "config.properties"
+                );
 
-        props.put("hibernate.connection.url", "jdbc:postgresql://localhost:5432/" + dbName);
-        props.put("hibernate.connection.username", username);
-        props.put("hibernate.connection.password", password);
+        String username =
+                Utils.getPropertyValue(
+                        "DB_USERNAME",
+                        "config.properties"
+                );
+
+        String password =
+                Utils.getPropertyValue(
+                        "DB_PASSWORD",
+                        "config.properties"
+                );
+
+        props.put(
+                "hibernate.connection.url",
+                "jdbc:postgresql://localhost:5432/" + dbName
+        );
+
+        props.put(
+                "hibernate.connection.username",
+                username
+        );
+
+        props.put(
+                "hibernate.connection.password",
+                password
+        );
     }
 }
