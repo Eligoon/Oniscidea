@@ -230,6 +230,20 @@ public class Main {
                             }
                     );
 
+                    config.routes.exception(
+                            Exception.class,
+                            (e, ctx) -> {
+                                ctx.status(500);
+
+                                ctx.json(
+                                        new ErrorResponseDTO(
+                                                500,
+                                                "Internal server error"
+                                        )
+                                );
+                            }
+                    );
+
                     // Home
                     config.routes.get(
                             "/",
