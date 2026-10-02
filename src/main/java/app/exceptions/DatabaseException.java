@@ -6,8 +6,10 @@ public class DatabaseException extends ApiException {
         super(500, message);
     }
 
-    public DatabaseException(String message, Throwable cause) {
-        super(500, message);
-        initCause(cause);
+    public DatabaseException(
+            String message,
+            Throwable cause
+    ) {
+        super(500, message, cause);
     }
 }
