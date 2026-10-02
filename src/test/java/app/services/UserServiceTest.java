@@ -7,11 +7,22 @@ import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@Testcontainers
 public class UserServiceTest {
+
+    @Container
+    private static final PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:16-alpine")
+                    .withDatabaseName("testdb")
+                    .withUsername("test")
+                    .withPassword("test");
 
     private static EntityManagerFactory emf;
     private static UserDAO userDAO;
@@ -21,8 +32,11 @@ public class UserServiceTest {
     static void setUp() {
 
         emf =
-                HibernateConfig
-                        .getEntityManagerFactory();
+                HibernateConfig.createTestEntityManagerFactory(
+                        postgres.getJdbcUrl(),
+                        postgres.getUsername(),
+                        postgres.getPassword()
+                );
 
         userDAO =
                 new UserDAO(emf);
