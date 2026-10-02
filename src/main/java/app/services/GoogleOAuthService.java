@@ -87,7 +87,9 @@ public class GoogleOAuthService {
                 .build();
     }
 
-    public String getAuthorizationUrl(Integer userId) {
+    public String getAuthorizationUrl(
+            Integer userId
+    ) {
 
         if (userId == null) {
             throw new ApiException(
@@ -161,7 +163,9 @@ public class GoogleOAuthService {
                             JSON_FACTORY,
                             credential
                     )
-                            .setApplicationName("TrainingProject")
+                            .setApplicationName(
+                                    "TrainingProject"
+                            )
                             .build();
 
             Userinfo googleUser =
@@ -194,20 +198,19 @@ public class GoogleOAuthService {
                 connectionDAO.update(connection);
             }
 
-        } catch (ApiException e) {
-
-            throw e;
-
         } catch (IOException e) {
 
             throw new ApiException(
                     500,
-                    "Could not authenticate with Google"
+                    "Could not authenticate with Google",
+                    e
             );
         }
     }
 
-    private String createState(Integer userId) {
+    private String createState(
+            Integer userId
+    ) {
 
         if (userId == null) {
             throw new ApiException(
@@ -252,12 +255,15 @@ public class GoogleOAuthService {
 
             throw new ApiException(
                     500,
-                    "Could not create OAuth state"
+                    "Could not create OAuth state",
+                    e
             );
         }
     }
 
-    private Integer validateState(String state) {
+    private Integer validateState(
+            String state
+    ) {
 
         if (state == null || state.isBlank()) {
             throw new ValidationException(
