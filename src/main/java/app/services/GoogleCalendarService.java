@@ -44,7 +44,9 @@ public class GoogleCalendarService {
         this.connectionDAO = connectionDAO;
     }
 
-    private GoogleCalendarConnection getConnection(Integer userId) {
+    private GoogleCalendarConnection getConnection(
+            Integer userId
+    ) {
 
         if (userId == null) {
             throw new ApiException(
@@ -111,7 +113,8 @@ public class GoogleCalendarService {
 
             throw new ApiException(
                     500,
-                    "Could not connect to Google Calendar"
+                    "Could not connect to Google Calendar",
+                    e
             );
         }
     }
@@ -177,7 +180,8 @@ public class GoogleCalendarService {
 
             throw new ApiException(
                     500,
-                    "Could not create Google Calendar event"
+                    "Could not create Google Calendar event",
+                    e
             );
         }
     }
@@ -248,7 +252,8 @@ public class GoogleCalendarService {
 
             throw new ApiException(
                     500,
-                    "Could not update Google Calendar event"
+                    "Could not update Google Calendar event",
+                    e
             );
         }
     }
@@ -281,7 +286,8 @@ public class GoogleCalendarService {
 
             throw new ApiException(
                     500,
-                    "Could not delete Google Calendar event"
+                    "Could not delete Google Calendar event",
+                    e
             );
         }
     }
