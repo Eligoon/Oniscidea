@@ -245,8 +245,12 @@ public class Main {
                     config.routes.exception(
                             Exception.class,
                             (e, ctx) -> {
-                                ctx.status(500);
+                                logger.error(
+                                        "Unhandled exception",
+                                        e
+                                );
 
+                                ctx.status(500);
                                 ctx.json(
                                         new ErrorResponseDTO(
                                                 500,
