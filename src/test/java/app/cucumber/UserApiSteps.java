@@ -1,4 +1,123 @@
 package app.cucumber;
 
+import app.config.HibernateConfig;
+import app.Main;
+import io.cucumber.java.AfterAll;
+import io.cucumber.java.BeforeAll;
+import io.cucumber.java.en.And;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.response.Response;
+import io.javalin.Javalin;
+import org.junit.jupiter.api.Assertions;
+import org.testcontainers.containers.PostgreSQLContainer;
+
+import jakarta.persistence.EntityManagerFactory;
+
+import static io.restassured.RestAssured.given;
+
 public class UserApiSteps {
+
+    private static PostgreSQLContainer<?> postgres;
+    private static EntityManagerFactory emf;
+    private static Javalin app;
+
+    private Response response;
+
+    @BeforeAll
+    public static void setup() {
+
+        postgres =
+                new PostgreSQLContainer<>("postgres:16-alpine")
+                        .withDatabaseName("testdb")
+                        .withUsername("test")
+                        .withPassword("test");
+
+        postgres.start();
+
+        emf =
+                HibernateConfig.createTestEntityManagerFactory(
+                        postgres.getJdbcUrl(),
+                        postgres.getUsername(),
+                        postgres.getPassword()
+                );
+
+        app =
+                Main.createApp(emf);
+
+        app.start(7071);
+    }
+
+    @AfterAll
+    public static void teardown() {
+
+        if (app != null) {
+            app.stop();
+        }
+
+        if (emf != null) {
+            emf.close();
+        }
+
+        if (postgres != null) {
+            postgres.stop();
+        }
+    }
+
+    @Given("the API is running")
+    public void theApiIsRunning() {
+        Assertions.assertNotNull(app);
+    }
+
+    @When("I create a user with name {string} and email {string}")
+    public void iCreateAUserWithNameAndEmail(
+            String name,
+            String email
+    ) {
+
+        String requestBody =
+                """
+                {
+                    "name": "%s",
+                    "email": "%s",
+                    "password": "password123"
+                }
+                """.formatted(name, email);
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .contentType("application/json")
+                        .body(requestBody)
+                        .when()
+                        .post("/api/users");
+    }
+
+    @Then("I should receive a {int} status code")
+    public void iShouldReceiveAStatusCode(int statusCode) {
+
+        Assertions.assertEquals(
+                statusCode,
+                response.statusCode()
+        );
+    }
+
+    @And("the response should contain the name {string}")
+    public void theResponseShouldContainTheName(String name) {
+
+        Assertions.assertEquals(
+                name,
+                response.jsonPath().getString("name")
+        );
+    }
+
+    @And("the response should contain the email {string}")
+    public void theResponseShouldContainTheEmail(String email) {
+
+        Assertions.assertEquals(
+                email,
+                response.jsonPath().getString("email")
+        );
+    }
 }
