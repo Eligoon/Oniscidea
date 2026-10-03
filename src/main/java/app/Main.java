@@ -21,6 +21,13 @@ public class Main {
         EntityManagerFactory emf =
                 HibernateConfig.getEntityManagerFactory();
 
+        createApp(emf).start(7070);
+    }
+
+    public static Javalin createApp(
+            EntityManagerFactory emf
+    ) {
+
         // User
         UserDAO userDAO =
                 new UserDAO(emf);
@@ -233,6 +240,7 @@ public class Main {
                                 );
                             }
                     );
+
 
                     config.routes.exception(
                             Exception.class,
@@ -543,6 +551,8 @@ public class Main {
                             bodyPartController::delete
                     );
 
-                }).start(7070);
+                });
+
+        return app;
     }
 }
