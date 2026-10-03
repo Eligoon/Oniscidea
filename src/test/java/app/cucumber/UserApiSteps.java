@@ -1,19 +1,18 @@
 package app.cucumber;
 
-import app.config.HibernateConfig;
 import app.Main;
+import app.config.HibernateConfig;
 import io.cucumber.java.AfterAll;
 import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.restassured.response.Response;
 import io.javalin.Javalin;
+import io.restassured.response.Response;
+import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.Assertions;
 import org.testcontainers.containers.PostgreSQLContainer;
-
-import jakarta.persistence.EntityManagerFactory;
 
 import static io.restassured.RestAssured.given;
 
@@ -24,6 +23,7 @@ public class UserApiSteps {
     private static Javalin app;
 
     private Response response;
+    private Integer createdUserId;
 
     @BeforeAll
     public static void setup() {
@@ -67,6 +67,7 @@ public class UserApiSteps {
 
     @Given("the API is running")
     public void theApiIsRunning() {
+
         Assertions.assertNotNull(app);
     }
 
@@ -92,10 +93,25 @@ public class UserApiSteps {
                         .body(requestBody)
                         .when()
                         .post("/api/users");
+
+        createdUserId =
+                response.jsonPath().getInt("id");
+    }
+
+    @When("I get the created user")
+    public void iGetTheCreatedUser() {
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .when()
+                        .get("/api/users/" + createdUserId);
     }
 
     @Then("I should receive a {int} status code")
-    public void iShouldReceiveAStatusCode(int statusCode) {
+    public void iShouldReceiveAStatusCode(
+            int statusCode
+    ) {
 
         Assertions.assertEquals(
                 statusCode,
@@ -104,7 +120,9 @@ public class UserApiSteps {
     }
 
     @And("the response should contain the name {string}")
-    public void theResponseShouldContainTheName(String name) {
+    public void theResponseShouldContainTheName(
+            String name
+    ) {
 
         Assertions.assertEquals(
                 name,
@@ -113,7 +131,9 @@ public class UserApiSteps {
     }
 
     @And("the response should contain the email {string}")
-    public void theResponseShouldContainTheEmail(String email) {
+    public void theResponseShouldContainTheEmail(
+            String email
+    ) {
 
         Assertions.assertEquals(
                 email,
