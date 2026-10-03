@@ -17,3 +17,12 @@ Feature: User API
     Then I should receive a 200 status code
     And the response should contain the name "Get User"
     And the response should contain the email "get@test.com"
+
+  Scenario: Update a user
+
+    Given the API is running
+    When I create a user with name "Update User" and email "update@test.com"
+    And I update the created user to name "Updated User" and email "updated@test.com"
+    Then I should receive a 200 status code
+    And the response should contain the name "Updated User"
+    And the response should contain the email "updated@test.com"
