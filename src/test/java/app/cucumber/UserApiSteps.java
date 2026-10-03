@@ -108,6 +108,30 @@ public class UserApiSteps {
                         .get("/api/users/" + createdUserId);
     }
 
+    @When("I update the created user to name {string} and email {string}")
+    public void iUpdateTheCreatedUser(
+            String name,
+            String email
+    ) {
+
+        String requestBody =
+                """
+                {
+                    "name": "%s",
+                    "email": "%s",
+                    "password": "password123"
+                }
+                """.formatted(name, email);
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .contentType("application/json")
+                        .body(requestBody)
+                        .when()
+                        .put("/api/users/" + createdUserId);
+    }
+
     @Then("I should receive a {int} status code")
     public void iShouldReceiveAStatusCode(
             int statusCode
