@@ -132,6 +132,16 @@ public class UserApiSteps {
                         .put("/api/users/" + createdUserId);
     }
 
+    @When("I delete the created user")
+    public void iDeleteTheCreatedUser() {
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .when()
+                        .delete("/api/users/" + createdUserId);
+    }
+
     @Then("I should receive a {int} status code")
     public void iShouldReceiveAStatusCode(
             int statusCode
