@@ -26,3 +26,10 @@ Feature: User API
     Then I should receive a 200 status code
     And the response should contain the name "Updated User"
     And the response should contain the email "updated@test.com"
+
+  Scenario: Delete a user
+
+    Given the API is running
+    When I create a user with name "Delete User" and email "delete@test.com"
+    And I delete the created user
+    Then I should receive a 204 status code
