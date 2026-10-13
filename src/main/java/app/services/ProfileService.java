@@ -142,6 +142,54 @@ public class ProfileService {
         return toDTO(profile);
     }
 
+    public ProfileDTO updateProfileForUser(
+            Integer profileId,
+            Integer userId,
+            String name
+    ) {
+
+        Profile profile =
+                profileDAO.getById(profileId);
+
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new ApiException(
+                    403,
+                    "You are not allowed to update this profile"
+            );
+        }
+
+        if (name == null || name.isBlank()) {
+            throw new ValidationException(
+                    "Profile name is required"
+            );
+        }
+
+        profile.update(name);
+
+        Profile updated =
+                profileDAO.update(profile);
+
+        return toDTO(updated);
+    }
+
+    public void deleteProfileForUser(
+            Integer profileId,
+            Integer userId
+    ) {
+
+        Profile profile =
+                profileDAO.getById(profileId);
+
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new ApiException(
+                    403,
+                    "You are not allowed to delete this profile"
+            );
+        }
+
+        profileDAO.delete(profileId);
+    }
+
     private ProfileDTO toDTO(Profile profile) {
 
         return new ProfileDTO(
