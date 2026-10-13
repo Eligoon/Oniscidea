@@ -6,6 +6,7 @@ import app.dtos.ProfileDTO;
 import app.entities.Profile;
 import app.entities.User;
 import app.exceptions.ValidationException;
+import app.exceptions.ApiException;
 
 import java.util.List;
 
@@ -115,6 +116,30 @@ public class ProfileService {
         }
 
         profileDAO.delete(id);
+    }
+
+    public ProfileDTO getProfileForUser(
+            Integer profileId,
+            Integer userId
+    ) {
+
+        if (profileId == null || userId == null) {
+            throw new ValidationException(
+                    "Profile id and user id are required"
+            );
+        }
+
+        Profile profile =
+                profileDAO.getById(profileId);
+
+        if (!profile.getUser().getId().equals(userId)) {
+            throw new ApiException(
+                    403,
+                    "You are not allowed to access this profile"
+            );
+        }
+
+        return toDTO(profile);
     }
 
     private ProfileDTO toDTO(Profile profile) {
