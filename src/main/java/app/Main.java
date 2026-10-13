@@ -10,6 +10,7 @@ import io.javalin.Javalin;
 import jakarta.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import app.services.JwtService;
 
 public class Main {
 
@@ -35,8 +36,14 @@ public class Main {
         UserService userService =
                 new UserService(userDAO);
 
+        JwtService jwtService =
+                new JwtService();
+
         UserController userController =
-                new UserController(userService);
+                new UserController(
+                        userService,
+                        jwtService
+                );
 
         // Profile
         ProfileDAO profileDAO =

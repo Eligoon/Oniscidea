@@ -1,6 +1,9 @@
+
 package app.controllers;
 
+import app.dtos.LoginResponseDTO;
 import app.dtos.UserDTO;
+import app.services.JwtService;
 import app.services.UserService;
 import io.javalin.http.Context;
 
@@ -9,9 +12,14 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final JwtService jwtService;
 
-    public UserController(UserService userService) {
+    public UserController(
+            UserService userService,
+            JwtService jwtService
+    ) {
         this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     public void create(Context ctx) {
@@ -94,6 +102,20 @@ public class UserController {
                         request.getPassword()
                 );
 
-        ctx.json(user);
+        String token =
+                jwtService.generateToken(
+                        user.getId(),
+                        user.getEmail()
+                );
+
+        LoginResponseDTO response =
+                new LoginResponseDTO(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        token
+                );
+
+        ctx.json(response);
     }
 }
