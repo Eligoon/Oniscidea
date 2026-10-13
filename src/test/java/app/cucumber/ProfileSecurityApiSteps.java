@@ -1,7 +1,6 @@
 
 package app.cucumber;
 
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -104,6 +103,46 @@ public class ProfileSecurityApiSteps {
                         )
                         .when()
                         .get("/api/profiles/" + otherProfileId);
+    }
+
+    @When("I update that other profile with my token")
+    public void iUpdateThatOtherProfileWithMyToken() {
+
+        token = loginAndGetToken(email);
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header(
+                                "Authorization",
+                                "Bearer " + token
+                        )
+                        .contentType("application/json")
+                        .body(
+                                """
+                                {
+                                    "name": "Unauthorized Update"
+                                }
+                                """
+                        )
+                        .when()
+                        .put("/api/profiles/" + otherProfileId);
+    }
+
+    @When("I delete that other profile with my token")
+    public void iDeleteThatOtherProfileWithMyToken() {
+
+        token = loginAndGetToken(email);
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header(
+                                "Authorization",
+                                "Bearer " + token
+                        )
+                        .when()
+                        .delete("/api/profiles/" + otherProfileId);
     }
 
     @Then("I should receive a {int} status code for security")

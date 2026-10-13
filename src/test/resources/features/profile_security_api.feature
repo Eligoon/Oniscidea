@@ -20,3 +20,13 @@ Feature: Profile API security
     Given another user has a profile for security testing
     When I log in and request that other profile with my token
     Then I should receive a 403 status code for security
+
+  Scenario: Prevent a user from updating another user's profile
+    Given another user has a profile for security testing
+    When I update that other profile with my token
+    Then I should receive a 403 status code for security
+
+  Scenario: Prevent a user from deleting another user's profile
+    Given another user has a profile for security testing
+    When I delete that other profile with my token
+    Then I should receive a 403 status code for security
