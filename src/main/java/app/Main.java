@@ -11,6 +11,7 @@ import jakarta.persistence.EntityManagerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import app.services.JwtService;
+import app.services.JwtAuthentication;
 
 public class Main {
 
@@ -38,6 +39,9 @@ public class Main {
 
         JwtService jwtService =
                 new JwtService();
+
+        JwtAuthentication jwtAuthentication =
+                new JwtAuthentication(jwtService);
 
         UserController userController =
                 new UserController(
@@ -324,6 +328,12 @@ public class Main {
                     );
 
                     // Profile routes
+
+                    config.routes.before(
+                            "/api/profiles/{id}",
+                            jwtAuthentication::authenticate
+                    );
+
                     config.routes.post(
                             "/api/profiles",
                             profileController::create
@@ -348,6 +358,7 @@ public class Main {
                             "/api/profiles/{id}",
                             profileController::delete
                     );
+
 
                     // TrainingProgram routes
 
