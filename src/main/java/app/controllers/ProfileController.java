@@ -62,12 +62,16 @@ public class ProfileController {
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         ProfileDTO request =
                 ctx.bodyAsClass(ProfileDTO.class);
 
         ProfileDTO profile =
-                profileService.updateProfile(
+                profileService.updateProfileForUser(
                         id,
+                        authenticatedUserId,
                         request.getName()
                 );
 
@@ -81,7 +85,13 @@ public class ProfileController {
                         ctx.pathParam("id")
                 );
 
-        profileService.deleteProfile(id);
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
+        profileService.deleteProfileForUser(
+                id,
+                authenticatedUserId
+        );
 
         ctx.status(204);
     }
