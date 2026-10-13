@@ -19,54 +19,35 @@ public class ProfileSecurityApiSteps {
 
     private final String password = "password123";
 
+    private String otherEmail;
     private Integer profileId;
+    private Integer otherProfileId;
     private Response response;
+    private String token;
 
     @Given("I have a profile for security testing")
     public void iHaveAProfileForSecurityTesting() {
 
-        String userRequest =
-                """
-                {
-                    "name": "Security Test User",
-                    "email": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, password);
+        Integer userId = createUser(email);
 
-        Integer userId =
-                given()
-                        .baseUri("http://localhost:7071")
-                        .contentType("application/json")
-                        .body(userRequest)
-                        .when()
-                        .post("/api/users")
-                        .then()
-                        .statusCode(201)
-                        .extract()
-                        .jsonPath()
-                        .getInt("id");
+        profileId = createProfile(
+                userId,
+                "Security Test Profile"
+        );
+    }
 
-        String profileRequest =
-                """
-                {
-                    "name": "Security Test Profile",
-                    "userId": %d
-                }
-                """.formatted(userId);
+    @Given("another user has a profile for security testing")
+    public void anotherUserHasAProfileForSecurityTesting() {
 
-        profileId =
-                given()
-                        .baseUri("http://localhost:7071")
-                        .contentType("application/json")
-                        .body(profileRequest)
-                        .when()
-                        .post("/api/profiles")
-                        .then()
-                        .statusCode(201)
-                        .extract()
-                        .jsonPath()
-                        .getInt("id");
+        otherEmail =
+                "security-other-" + UUID.randomUUID() + "@test.com";
+
+        Integer otherUserId = createUser(otherEmail);
+
+        otherProfileId = createProfile(
+                otherUserId,
+                "Other Security Test Profile"
+        );
     }
 
     @When("I request that profile without a token")
@@ -96,29 +77,7 @@ public class ProfileSecurityApiSteps {
     @When("I log in and request that profile with the token")
     public void iLogInAndRequestThatProfileWithTheToken() {
 
-        String loginRequest =
-                """
-                {
-                    "email": "%s",
-                    "password": "%s"
-                }
-                """.formatted(email, password);
-
-        String token =
-                given()
-                        .baseUri("http://localhost:7071")
-                        .contentType("application/json")
-                        .body(loginRequest)
-                        .when()
-                        .post("/api/login")
-                        .then()
-                        .statusCode(200)
-                        .extract()
-                        .jsonPath()
-                        .getString("token");
-
-        Assertions.assertNotNull(token);
-        Assertions.assertFalse(token.isBlank());
+        token = loginAndGetToken(email);
 
         response =
                 given()
@@ -131,6 +90,22 @@ public class ProfileSecurityApiSteps {
                         .get("/api/profiles/" + profileId);
     }
 
+    @When("I log in and request that other profile with my token")
+    public void iLogInAndRequestThatOtherProfileWithMyToken() {
+
+        token = loginAndGetToken(email);
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header(
+                                "Authorization",
+                                "Bearer " + token
+                        )
+                        .when()
+                        .get("/api/profiles/" + otherProfileId);
+    }
+
     @Then("I should receive a {int} status code for security")
     public void iShouldReceiveAStatusCodeForSecurity(int statusCode) {
 
@@ -138,5 +113,78 @@ public class ProfileSecurityApiSteps {
                 statusCode,
                 response.statusCode()
         );
+    }
+
+    private Integer createUser(String userEmail) {
+
+        String requestBody =
+                """
+                {
+                    "name": "Security Test User",
+                    "email": "%s",
+                    "password": "%s"
+                }
+                """.formatted(userEmail, password);
+
+        return given()
+                .baseUri("http://localhost:7071")
+                .contentType("application/json")
+                .body(requestBody)
+                .when()
+                .post("/api/users")
+                .then()
+                .statusCode(201)
+                .extract()
+                .jsonPath()
+                .getInt("id");
+    }
+
+    private Integer createProfile(
+            Integer userId,
+            String profileName
+    ) {
+
+        String requestBody =
+                """
+                {
+                    "name": "%s",
+                    "userId": %d
+                }
+                """.formatted(profileName, userId);
+
+        return given()
+                .baseUri("http://localhost:7071")
+                .contentType("application/json")
+                .body(requestBody)
+                .when()
+                .post("/api/profiles")
+                .then()
+                .statusCode(201)
+                .extract()
+                .jsonPath()
+                .getInt("id");
+    }
+
+    private String loginAndGetToken(String userEmail) {
+
+        String requestBody =
+                """
+                {
+                    "email": "%s",
+                    "password": "%s"
+                }
+                """.formatted(userEmail, password);
+
+        return given()
+                .baseUri("http://localhost:7071")
+                .contentType("application/json")
+                .body(requestBody)
+                .when()
+                .post("/api/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getString("token");
     }
 }
