@@ -12,6 +12,11 @@ Feature: Profile API security
     When I request that profile with an invalid token
     Then I should receive a 401 status code for security
 
-  Scenario: Allow a request with a valid token
+  Scenario: Allow a user to access their own profile
     When I log in and request that profile with the token
     Then I should receive a 200 status code for security
+
+  Scenario: Prevent a user from accessing another user's profile
+    Given another user has a profile for security testing
+    When I log in and request that other profile with my token
+    Then I should receive a 403 status code for security
