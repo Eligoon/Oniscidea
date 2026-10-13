@@ -43,8 +43,14 @@ public class ProfileController {
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         ProfileDTO profile =
-                profileService.getProfile(id);
+                profileService.getProfileForUser(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.json(profile);
     }
