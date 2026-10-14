@@ -303,6 +303,15 @@ public class Main {
                             userController::create
                     );
 
+                    config.routes.before(
+                            "/api/users",
+                            ctx -> {
+                                if (ctx.method().toString().equals("GET")) {
+                                    jwtAuthentication.authenticate(ctx);
+                                }
+                            }
+                    );
+
                     config.routes.get(
                             "/api/users",
                             userController::getAll
