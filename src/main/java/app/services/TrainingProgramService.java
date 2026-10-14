@@ -1,3 +1,4 @@
+
 package app.services;
 
 import app.daos.ProfileDAO;
@@ -5,6 +6,7 @@ import app.daos.TrainingProgramDAO;
 import app.dtos.TrainingProgramDTO;
 import app.entities.Profile;
 import app.entities.TrainingProgram;
+import app.exceptions.ApiException;
 import app.exceptions.ValidationException;
 
 import java.util.List;
@@ -25,7 +27,8 @@ public class TrainingProgramService {
     public TrainingProgramDTO createTrainingProgram(
             String name,
             String description,
-            Integer profileId
+            Integer profileId,
+            Integer authenticatedUserId
     ) {
 
         if (name == null || name.isBlank()) {
@@ -40,8 +43,17 @@ public class TrainingProgramService {
             );
         }
 
+        requireAuthenticatedUser(authenticatedUserId);
+
         Profile profile =
                 profileDAO.getById(profileId);
+
+        if (!profile.getUser().getId().equals(authenticatedUserId)) {
+            throw new ApiException(
+                    403,
+                    "You are not allowed to create a training program for this profile"
+            );
+        }
 
         TrainingProgram program =
                 new TrainingProgram(
@@ -56,7 +68,10 @@ public class TrainingProgramService {
         return toDTO(created);
     }
 
-    public TrainingProgramDTO getTrainingProgram(Integer id) {
+    public TrainingProgramDTO getTrainingProgram(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
 
         if (id == null) {
             throw new ValidationException(
@@ -64,24 +79,37 @@ public class TrainingProgramService {
             );
         }
 
+        requireAuthenticatedUser(authenticatedUserId);
+
         TrainingProgram program =
                 trainingProgramDAO.getById(id);
+
+        ensureOwnership(program, authenticatedUserId);
 
         return toDTO(program);
     }
 
-    public List<TrainingProgramDTO> getAllTrainingPrograms() {
+    public List<TrainingProgramDTO> getAllTrainingPrograms(
+            Integer authenticatedUserId
+    ) {
+
+        requireAuthenticatedUser(authenticatedUserId);
 
         List<TrainingProgram> programs =
                 trainingProgramDAO.getAll();
 
         return programs.stream()
+                .filter(program -> isOwnedByUser(
+                        program,
+                        authenticatedUserId
+                ))
                 .map(this::toDTO)
                 .toList();
     }
 
     public TrainingProgramDTO updateTrainingProgram(
             Integer id,
+            Integer authenticatedUserId,
             String name,
             String description
     ) {
@@ -98,8 +126,12 @@ public class TrainingProgramService {
             );
         }
 
+        requireAuthenticatedUser(authenticatedUserId);
+
         TrainingProgram program =
                 trainingProgramDAO.getById(id);
+
+        ensureOwnership(program, authenticatedUserId);
 
         program.update(
                 name,
@@ -112,7 +144,10 @@ public class TrainingProgramService {
         return toDTO(updated);
     }
 
-    public void deleteTrainingProgram(Integer id) {
+    public void deleteTrainingProgram(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
 
         if (id == null) {
             throw new ValidationException(
@@ -120,7 +155,45 @@ public class TrainingProgramService {
             );
         }
 
+        requireAuthenticatedUser(authenticatedUserId);
+
+        TrainingProgram program =
+                trainingProgramDAO.getById(id);
+
+        ensureOwnership(program, authenticatedUserId);
+
         trainingProgramDAO.delete(id);
+    }
+
+    private void requireAuthenticatedUser(Integer authenticatedUserId) {
+        if (authenticatedUserId == null) {
+            throw new ApiException(
+                    401,
+                    "Authentication is required"
+            );
+        }
+    }
+
+    private boolean isOwnedByUser(
+            TrainingProgram program,
+            Integer authenticatedUserId
+    ) {
+        Profile profile =
+                profileDAO.getById(program.getProfile().getId());
+
+        return profile.getUser().getId().equals(authenticatedUserId);
+    }
+
+    private void ensureOwnership(
+            TrainingProgram program,
+            Integer authenticatedUserId
+    ) {
+        if (!isOwnedByUser(program, authenticatedUserId)) {
+            throw new ApiException(
+                    403,
+                    "You are not allowed to access this training program"
+            );
+        }
     }
 
     private TrainingProgramDTO toDTO(
