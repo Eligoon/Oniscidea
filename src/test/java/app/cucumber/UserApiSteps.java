@@ -1,3 +1,4 @@
+
 package app.cucumber;
 
 import app.Main;
@@ -24,6 +25,7 @@ public class UserApiSteps {
 
     private Response response;
     private Integer createdUserId;
+    private String createdUserEmail;
 
     @BeforeAll
     public static void setup() {
@@ -77,6 +79,8 @@ public class UserApiSteps {
             String email
     ) {
 
+        createdUserEmail = email;
+
         String requestBody =
                 """
                 {
@@ -93,6 +97,8 @@ public class UserApiSteps {
                         .body(requestBody)
                         .when()
                         .post("/api/users");
+
+        Assertions.assertEquals(201, response.statusCode());
 
         createdUserId =
                 response.jsonPath().getInt("id");
@@ -140,6 +146,61 @@ public class UserApiSteps {
                         .baseUri("http://localhost:7071")
                         .when()
                         .delete("/api/users/" + createdUserId);
+    }
+
+    @When("I request all users without a token")
+    public void iRequestAllUsersWithoutAToken() {
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .when()
+                        .get("/api/users");
+    }
+
+    @When("I request all users with an invalid token")
+    public void iRequestAllUsersWithAnInvalidToken() {
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer invalid-token")
+                        .when()
+                        .get("/api/users");
+    }
+
+    @When("I log in and request all users")
+    public void iLogInAndRequestAllUsers() {
+
+        String requestBody =
+                """
+                {
+                    "email": "%s",
+                    "password": "password123"
+                }
+                """.formatted(createdUserEmail);
+
+        Response loginResponse =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .contentType("application/json")
+                        .body(requestBody)
+                        .when()
+                        .post("/api/login");
+
+        Assertions.assertEquals(200, loginResponse.statusCode());
+
+        String token =
+                loginResponse.jsonPath().getString("token");
+
+        Assertions.assertNotNull(token);
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
+                        .when()
+                        .get("/api/users");
     }
 
     @Then("I should receive a {int} status code")
