@@ -296,10 +296,29 @@ public class Main {
                             )
                     );
 
+
                     // User routes
+
+                    // Public routes
                     config.routes.post(
                             "/api/users",
                             userController::create
+                    );
+
+                    config.routes.post(
+                            "/api/login",
+                            userController::login
+                    );
+
+                    // Require JWT authentication for private user routes
+                    config.routes.before(
+                            "/api/users",
+                            jwtAuthentication::authenticate
+                    );
+
+                    config.routes.before(
+                            "/api/users/{id}",
+                            jwtAuthentication::authenticate
                     );
 
                     config.routes.get(
@@ -322,10 +341,6 @@ public class Main {
                             userController::delete
                     );
 
-                    config.routes.post(
-                            "/api/login",
-                            userController::login
-                    );
 
                     // Profile routes
 
