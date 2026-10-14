@@ -12,6 +12,7 @@ public class TrainingCalendarApiSteps {
 
     private Integer trainingCalendarProfileId;
     private Response response;
+    private String token;
 
     @And("I create a user for the training calendar")
     public void iCreateAUserForTheTrainingCalendar() {
@@ -41,6 +42,28 @@ public class TrainingCalendarApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .contentType("application/json")
+                        .body(
+                                """
+                                {
+                                    "email": "trainingcalendar@test.com",
+                                    "password": "password123"
+                                }
+                                """
+                        )
+                        .when()
+                        .post("/api/login")
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .response();
+
+        token = response.jsonPath().getString("token");
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(
                                 """
@@ -80,6 +103,7 @@ public class TrainingCalendarApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(requestBody)
                         .when()

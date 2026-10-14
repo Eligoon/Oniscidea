@@ -1,4 +1,3 @@
-
 package app.cucumber;
 
 import io.cucumber.java.en.Given;
@@ -28,10 +27,12 @@ public class ProfileSecurityApiSteps {
     public void iHaveAProfileForSecurityTesting() {
 
         Integer userId = createUser(email);
+        token = loginAndGetToken(email);
 
         profileId = createProfile(
                 userId,
-                "Security Test Profile"
+                "Security Test Profile",
+                token
         );
     }
 
@@ -42,10 +43,12 @@ public class ProfileSecurityApiSteps {
                 "security-other-" + UUID.randomUUID() + "@test.com";
 
         Integer otherUserId = createUser(otherEmail);
+        String otherToken = loginAndGetToken(otherEmail);
 
         otherProfileId = createProfile(
                 otherUserId,
-                "Other Security Test Profile"
+                "Other Security Test Profile",
+                otherToken
         );
     }
 
@@ -180,7 +183,8 @@ public class ProfileSecurityApiSteps {
 
     private Integer createProfile(
             Integer userId,
-            String profileName
+            String profileName,
+            String profileToken
     ) {
 
         String requestBody =
@@ -193,6 +197,7 @@ public class ProfileSecurityApiSteps {
 
         return given()
                 .baseUri("http://localhost:7071")
+                .header("Authorization", "Bearer " + profileToken)
                 .contentType("application/json")
                 .body(requestBody)
                 .when()

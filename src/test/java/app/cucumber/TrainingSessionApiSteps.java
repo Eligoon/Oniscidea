@@ -15,6 +15,7 @@ public class TrainingSessionApiSteps {
     private Integer sessionProfileId;
     private Integer sessionCalendarId;
     private Integer sessionTrainingProgramId;
+    private String token;
     private Response response;
 
     @And("I create a user for the training session")
@@ -49,6 +50,28 @@ public class TrainingSessionApiSteps {
                         .body(
                                 """
                                 {
+                                    "email": "trainingsession@test.com",
+                                    "password": "password123"
+                                }
+                                """
+                        )
+                        .when()
+                        .post("/api/login")
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .response();
+
+        token = response.jsonPath().getString("token");
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .body(
+                                """
+                                {
                                     "name": "Training Session Profile",
                                     "userId": %d
                                 }
@@ -67,6 +90,7 @@ public class TrainingSessionApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(
                                 """
@@ -104,6 +128,7 @@ public class TrainingSessionApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(requestBody)
                         .when()
@@ -140,6 +165,7 @@ public class TrainingSessionApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(requestBody)
                         .when()

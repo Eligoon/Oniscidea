@@ -11,6 +11,7 @@ import static io.restassured.RestAssured.given;
 public class ProfileApiSteps {
 
     private Integer profileUserId;
+    private String token;
     private Response response;
 
     @And("I create a user for the profile")
@@ -37,6 +38,27 @@ public class ProfileApiSteps {
                         .extract()
                         .jsonPath()
                         .getInt("id");
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .contentType("application/json")
+                        .body(
+                                """
+                                {
+                                    "email": "profile@test.com",
+                                    "password": "password123"
+                                }
+                                """
+                        )
+                        .when()
+                        .post("/api/login")
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .response();
+
+        token = response.jsonPath().getString("token");
     }
 
     @When("I create a profile with name {string}")
@@ -58,6 +80,7 @@ public class ProfileApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(requestBody)
                         .when()

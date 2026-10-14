@@ -1,4 +1,3 @@
-
 package app.cucumber;
 
 import app.Main;
@@ -107,9 +106,12 @@ public class UserApiSteps {
     @When("I get the created user")
     public void iGetTheCreatedUser() {
 
+        String token = loginAndGetToken(createdUserEmail);
+
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .when()
                         .get("/api/users/" + createdUserId);
     }
@@ -119,6 +121,8 @@ public class UserApiSteps {
             String name,
             String email
     ) {
+
+        String token = loginAndGetToken(createdUserEmail);
 
         String requestBody =
                 """
@@ -132,6 +136,7 @@ public class UserApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(requestBody)
                         .when()
@@ -141,9 +146,12 @@ public class UserApiSteps {
     @When("I delete the created user")
     public void iDeleteTheCreatedUser() {
 
+        String token = loginAndGetToken(createdUserEmail);
+
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .when()
                         .delete("/api/users/" + createdUserId);
     }
@@ -172,13 +180,25 @@ public class UserApiSteps {
     @When("I log in and request all users")
     public void iLogInAndRequestAllUsers() {
 
+        String token = loginAndGetToken(createdUserEmail);
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
+                        .when()
+                        .get("/api/users");
+    }
+
+    private String loginAndGetToken(String email) {
+
         String requestBody =
                 """
                 {
                     "email": "%s",
                     "password": "password123"
                 }
-                """.formatted(createdUserEmail);
+                """.formatted(email);
 
         Response loginResponse =
                 given()
@@ -188,19 +208,18 @@ public class UserApiSteps {
                         .when()
                         .post("/api/login");
 
-        Assertions.assertEquals(200, loginResponse.statusCode());
+        Assertions.assertEquals(
+                200,
+                loginResponse.statusCode(),
+                "Login failed: " + loginResponse.asString()
+        );
 
         String token =
                 loginResponse.jsonPath().getString("token");
 
-        Assertions.assertNotNull(token);
+        Assertions.assertNotNull(token, "Login response did not contain a token");
 
-        response =
-                given()
-                        .baseUri("http://localhost:7071")
-                        .header("Authorization", "Bearer " + token)
-                        .when()
-                        .get("/api/users");
+        return token;
     }
 
     @Then("I should receive a {int} status code")

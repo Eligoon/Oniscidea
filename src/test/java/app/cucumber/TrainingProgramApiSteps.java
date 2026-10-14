@@ -11,6 +11,7 @@ import static io.restassured.RestAssured.given;
 public class TrainingProgramApiSteps {
 
     private Integer trainingProgramProfileId;
+    private String token;
     private Response response;
 
     @And("I create a user for the training program")
@@ -45,6 +46,28 @@ public class TrainingProgramApiSteps {
                         .body(
                                 """
                                 {
+                                    "email": "trainingprogram@test.com",
+                                    "password": "password123"
+                                }
+                                """
+                        )
+                        .when()
+                        .post("/api/login")
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .response();
+
+        token = response.jsonPath().getString("token");
+
+        response =
+                given()
+                        .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType("application/json")
+                        .body(
+                                """
+                                {
                                     "name": "Training Program Profile",
                                     "userId": %d
                                 }
@@ -60,7 +83,6 @@ public class TrainingProgramApiSteps {
         trainingProgramProfileId =
                 response.jsonPath().getInt("id");
     }
-
 
     @When("I create a training program with name {string}")
     public void iCreateATrainingProgramWithName(
@@ -82,6 +104,7 @@ public class TrainingProgramApiSteps {
         response =
                 given()
                         .baseUri("http://localhost:7071")
+                        .header("Authorization", "Bearer " + token)
                         .contentType("application/json")
                         .body(requestBody)
                         .when()

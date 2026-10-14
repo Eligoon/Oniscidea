@@ -1,4 +1,3 @@
-
 package app;
 
 import app.config.HibernateConfig;
@@ -289,6 +288,32 @@ public class Main {
                         );
                     });
 
+                    config.routes.before(ctx -> {
+                        String path = ctx.path();
+                        String method = ctx.method().toString();
+
+                        boolean publicRoute =
+                                (path.equals("/api/users")
+                                        && method.equals("POST"))
+                                        || (path.equals("/api/login")
+                                        && method.equals("POST"))
+                                        || (path.equals("/api/google-calendar/callback")
+                                        && method.equals("GET"))
+                                        || (path.equals("/api/exercises")
+                                        && method.equals("GET"))
+                                        || (path.matches("/api/exercises/\\d+")
+                                        && method.equals("GET"))
+                                        || (path.equals("/api/body-parts")
+                                        && method.equals("GET"))
+                                        || (path.matches("/api/body-parts/\\d+")
+                                        && method.equals("GET"));
+
+                        if (path.startsWith("/api/")
+                                && !publicRoute) {
+                            jwtAuthentication.authenticate(ctx);
+                        }
+                    });
+
                     // Home
                     config.routes.get(
                             "/",
@@ -301,15 +326,6 @@ public class Main {
                     config.routes.post(
                             "/api/users",
                             userController::create
-                    );
-
-                    config.routes.before(
-                            "/api/users",
-                            ctx -> {
-                                if (ctx.method().toString().equals("GET")) {
-                                    jwtAuthentication.authenticate(ctx);
-                                }
-                            }
                     );
 
                     config.routes.get(
@@ -338,11 +354,6 @@ public class Main {
                     );
 
                     // Profile routes
-
-                    config.routes.before(
-                            "/api/profiles/{id}",
-                            jwtAuthentication::authenticate
-                    );
 
                     config.routes.post(
                             "/api/profiles",
