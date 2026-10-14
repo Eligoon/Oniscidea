@@ -1,3 +1,4 @@
+
 package app.controllers;
 
 import app.dtos.TrainingProgramDTO;
@@ -18,6 +19,9 @@ public class TrainingProgramController {
 
     public void create(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         TrainingProgramDTO request =
                 ctx.bodyAsClass(TrainingProgramDTO.class);
 
@@ -25,7 +29,8 @@ public class TrainingProgramController {
                 trainingProgramService.createTrainingProgram(
                         request.getName(),
                         request.getDescription(),
-                        request.getProfileId()
+                        request.getProfileId(),
+                        authenticatedUserId
                 );
 
         ctx.status(201).json(program);
@@ -33,8 +38,13 @@ public class TrainingProgramController {
 
     public void getAll(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         List<TrainingProgramDTO> programs =
-                trainingProgramService.getAllTrainingPrograms();
+                trainingProgramService.getAllTrainingPrograms(
+                        authenticatedUserId
+                );
 
         ctx.json(programs);
     }
@@ -46,8 +56,14 @@ public class TrainingProgramController {
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         TrainingProgramDTO program =
-                trainingProgramService.getTrainingProgram(id);
+                trainingProgramService.getTrainingProgram(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.json(program);
     }
@@ -59,12 +75,16 @@ public class TrainingProgramController {
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         TrainingProgramDTO request =
                 ctx.bodyAsClass(TrainingProgramDTO.class);
 
         TrainingProgramDTO program =
                 trainingProgramService.updateTrainingProgram(
                         id,
+                        authenticatedUserId,
                         request.getName(),
                         request.getDescription()
                 );
@@ -79,7 +99,13 @@ public class TrainingProgramController {
                         ctx.pathParam("id")
                 );
 
-        trainingProgramService.deleteTrainingProgram(id);
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
+        trainingProgramService.deleteTrainingProgram(
+                id,
+                authenticatedUserId
+        );
 
         ctx.status(204);
     }
