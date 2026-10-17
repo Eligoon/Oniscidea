@@ -1,3 +1,4 @@
+
 package app.services;
 
 import app.daos.GoogleCalendarConnectionDAO;
@@ -11,6 +12,7 @@ import app.utils.Utils;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -197,6 +199,34 @@ public class GoogleOAuthService {
 
                 connectionDAO.update(connection);
             }
+
+        } catch (TokenResponseException e) {
+
+            if (e.getDetails() != null) {
+
+                System.err.println(
+                        "Google OAuth error: "
+                                + e.getDetails().getError()
+                );
+
+                System.err.println(
+                        "Google OAuth description: "
+                                + e.getDetails().getErrorDescription()
+                );
+
+            } else {
+
+                System.err.println(
+                        "Google OAuth token request failed with HTTP status: "
+                                + e.getStatusCode()
+                );
+            }
+
+            throw new ApiException(
+                    500,
+                    "Could not authenticate with Google",
+                    e
+            );
 
         } catch (IOException e) {
 
