@@ -1,3 +1,4 @@
+
 package app.controllers;
 
 import app.dtos.TrainingCalendarDTO;
@@ -19,6 +20,9 @@ public class TrainingCalendarController {
 
     public void create(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         TrainingCalendarDTO request =
                 ctx.bodyAsClass(
                         TrainingCalendarDTO.class
@@ -27,7 +31,8 @@ public class TrainingCalendarController {
         TrainingCalendarDTO calendar =
                 trainingCalendarService.createTrainingCalendar(
                         request.getName(),
-                        request.getProfileId()
+                        request.getProfileId(),
+                        authenticatedUserId
                 );
 
         ctx.status(201).json(calendar);
@@ -35,9 +40,14 @@ public class TrainingCalendarController {
 
     public void getAll(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         List<TrainingCalendarDTO> calendars =
                 trainingCalendarService
-                        .getAllTrainingCalendars();
+                        .getAllTrainingCalendars(
+                                authenticatedUserId
+                        );
 
         ctx.json(calendars);
     }
@@ -49,9 +59,15 @@ public class TrainingCalendarController {
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         TrainingCalendarDTO calendar =
                 trainingCalendarService
-                        .getTrainingCalendar(id);
+                        .getTrainingCalendar(
+                                id,
+                                authenticatedUserId
+                        );
 
         ctx.json(calendar);
     }
@@ -63,6 +79,9 @@ public class TrainingCalendarController {
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         TrainingCalendarDTO request =
                 ctx.bodyAsClass(
                         TrainingCalendarDTO.class
@@ -72,7 +91,8 @@ public class TrainingCalendarController {
                 trainingCalendarService
                         .updateTrainingCalendar(
                                 id,
-                                request.getName()
+                                request.getName(),
+                                authenticatedUserId
                         );
 
         ctx.json(calendar);
@@ -85,8 +105,14 @@ public class TrainingCalendarController {
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         trainingCalendarService
-                .deleteTrainingCalendar(id);
+                .deleteTrainingCalendar(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.status(204);
     }
