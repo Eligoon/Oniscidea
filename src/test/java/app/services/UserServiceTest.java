@@ -101,6 +101,7 @@ public class UserServiceTest {
 
         UserDTO result =
                 userService.getUser(
+                        created.getId(),
                         created.getId()
                 );
 
