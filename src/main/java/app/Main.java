@@ -88,7 +88,8 @@ public class Main {
                 new TrainingProgramExerciseService(
                         trainingProgramExerciseDAO,
                         trainingProgramDAO,
-                        exerciseDAO
+                        exerciseDAO,
+                        profileDAO
                 );
 
         TrainingProgramExerciseController trainingProgramExerciseController =

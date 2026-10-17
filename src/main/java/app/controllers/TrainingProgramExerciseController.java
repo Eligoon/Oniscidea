@@ -1,3 +1,4 @@
+
 package app.controllers;
 
 import app.dtos.TrainingProgramExerciseDTO;
@@ -17,11 +18,13 @@ public class TrainingProgramExerciseController {
     }
 
     public void addExercise(Context ctx) {
-
         Integer trainingProgramId =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
+
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         TrainingProgramExerciseDTO request =
                 ctx.bodyAsClass(
@@ -35,14 +38,14 @@ public class TrainingProgramExerciseController {
                         request.getExerciseOrder(),
                         request.getPlannedSets(),
                         request.getPlannedReps(),
-                        request.getRestSeconds()
+                        request.getRestSeconds(),
+                        authenticatedUserId
                 );
 
         ctx.status(201).json(result);
     }
 
     public void deleteExercise(Context ctx) {
-
         Integer trainingProgramId =
                 Integer.parseInt(
                         ctx.pathParam("id")
@@ -53,9 +56,13 @@ public class TrainingProgramExerciseController {
                         ctx.pathParam("exerciseId")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         trainingProgramExerciseService.deleteExercise(
                 trainingProgramId,
-                exerciseId
+                exerciseId,
+                authenticatedUserId
         );
 
         ctx.status(204);
