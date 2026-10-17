@@ -1,23 +1,40 @@
+
 package app.services;
 
 import app.daos.ExerciseLogDAO;
+import app.daos.ProfileDAO;
 import app.daos.SetLogDAO;
+import app.daos.TrainingCalendarDAO;
+import app.daos.TrainingSessionDAO;
 import app.dtos.SetLogDTO;
 import app.entities.ExerciseLog;
+import app.entities.Profile;
 import app.entities.SetLog;
+import app.entities.TrainingCalendar;
+import app.entities.TrainingSession;
+import app.exceptions.ApiException;
 import app.exceptions.ValidationException;
 
 public class SetLogService {
 
     private final SetLogDAO setLogDAO;
     private final ExerciseLogDAO exerciseLogDAO;
+    private final TrainingSessionDAO trainingSessionDAO;
+    private final TrainingCalendarDAO trainingCalendarDAO;
+    private final ProfileDAO profileDAO;
 
     public SetLogService(
             SetLogDAO setLogDAO,
-            ExerciseLogDAO exerciseLogDAO
+            ExerciseLogDAO exerciseLogDAO,
+            TrainingSessionDAO trainingSessionDAO,
+            TrainingCalendarDAO trainingCalendarDAO,
+            ProfileDAO profileDAO
     ) {
         this.setLogDAO = setLogDAO;
         this.exerciseLogDAO = exerciseLogDAO;
+        this.trainingSessionDAO = trainingSessionDAO;
+        this.trainingCalendarDAO = trainingCalendarDAO;
+        this.profileDAO = profileDAO;
     }
 
     public SetLogDTO createSetLog(
@@ -26,8 +43,11 @@ public class SetLogService {
             Double weight,
             Integer reps,
             Integer rir,
-            boolean completed
+            boolean completed,
+            Integer authenticatedUserId
     ) {
+        requireAuthenticatedUser(authenticatedUserId);
+
         if (exerciseLogId == null) {
             throw new ValidationException(
                     "Exercise log id is required"
@@ -61,6 +81,16 @@ public class SetLogService {
         ExerciseLog exerciseLog =
                 exerciseLogDAO.getById(exerciseLogId);
 
+        TrainingSession trainingSession =
+                trainingSessionDAO.getById(
+                        exerciseLog.getTrainingSession().getId()
+                );
+
+        ensureSessionOwnership(
+                trainingSession,
+                authenticatedUserId
+        );
+
         SetLog setLog =
                 new SetLog(
                         exerciseLog,
@@ -77,7 +107,11 @@ public class SetLogService {
         return toDTO(created);
     }
 
-    public SetLogDTO getSetLog(Integer id) {
+    public SetLogDTO getSetLog(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
+        requireAuthenticatedUser(authenticatedUserId);
 
         if (id == null) {
             throw new ValidationException(
@@ -88,11 +122,59 @@ public class SetLogService {
         SetLog setLog =
                 setLogDAO.getById(id);
 
+        ExerciseLog exerciseLog =
+                exerciseLogDAO.getById(
+                        setLog.getExerciseLog().getId()
+                );
+
+        TrainingSession trainingSession =
+                trainingSessionDAO.getById(
+                        exerciseLog.getTrainingSession().getId()
+                );
+
+        ensureSessionOwnership(
+                trainingSession,
+                authenticatedUserId
+        );
+
         return toDTO(setLog);
     }
 
-    private SetLogDTO toDTO(SetLog setLog) {
+    private void ensureSessionOwnership(
+            TrainingSession session,
+            Integer authenticatedUserId
+    ) {
+        TrainingCalendar calendar =
+                trainingCalendarDAO.getById(
+                        session.getCalendar().getId()
+                );
 
+        Profile profile =
+                profileDAO.getById(
+                        calendar.getProfile().getId()
+                );
+
+        if (!profile.getUser().getId()
+                .equals(authenticatedUserId)) {
+            throw new ApiException(
+                    403,
+                    "You do not have access to this set log"
+            );
+        }
+    }
+
+    private void requireAuthenticatedUser(
+            Integer authenticatedUserId
+    ) {
+        if (authenticatedUserId == null) {
+            throw new ApiException(
+                    401,
+                    "Authentication is required"
+            );
+        }
+    }
+
+    private SetLogDTO toDTO(SetLog setLog) {
         return new SetLogDTO(
                 setLog.getId(),
                 setLog.getExerciseLog().getId(),

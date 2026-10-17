@@ -207,7 +207,10 @@ public class Main {
         SetLogService setLogService =
                 new SetLogService(
                         setLogDAO,
-                        exerciseLogDAO
+                        exerciseLogDAO,
+                        trainingSessionDAO,
+                        trainingCalendarDAO,
+                        profileDAO
                 );
 
         ExerciseLogController exerciseLogController =

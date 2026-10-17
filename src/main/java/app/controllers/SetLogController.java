@@ -1,3 +1,4 @@
+
 package app.controllers;
 
 import app.dtos.SetLogDTO;
@@ -16,6 +17,9 @@ public class SetLogController {
 
     public void create(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         Integer exerciseLogId =
                 Integer.parseInt(
                         ctx.pathParam("id")
@@ -33,7 +37,8 @@ public class SetLogController {
                         request.getWeight(),
                         request.getReps(),
                         request.getRir(),
-                        request.isCompleted()
+                        request.isCompleted(),
+                        authenticatedUserId
                 );
 
         ctx.status(201).json(setLog);
@@ -41,13 +46,19 @@ public class SetLogController {
 
     public void getById(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
 
         SetLogDTO setLog =
-                setLogService.getSetLog(id);
+                setLogService.getSetLog(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.json(setLog);
     }
