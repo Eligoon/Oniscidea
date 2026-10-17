@@ -1,12 +1,15 @@
 package app.services;
 
+import app.daos.ProfileDAO;
 import app.daos.TrainingCalendarDAO;
 import app.daos.TrainingProgramDAO;
 import app.daos.TrainingSessionDAO;
 import app.dtos.TrainingSessionDTO;
+import app.entities.Profile;
 import app.entities.TrainingCalendar;
 import app.entities.TrainingProgram;
 import app.entities.TrainingSession;
+import app.exceptions.ApiException;
 import app.exceptions.ValidationException;
 
 import java.time.LocalDate;
@@ -18,18 +21,183 @@ public class TrainingSessionService {
     private final TrainingSessionDAO trainingSessionDAO;
     private final TrainingCalendarDAO trainingCalendarDAO;
     private final TrainingProgramDAO trainingProgramDAO;
+    private final ProfileDAO profileDAO;
 
     public TrainingSessionService(
             TrainingSessionDAO trainingSessionDAO,
             TrainingCalendarDAO trainingCalendarDAO,
-            TrainingProgramDAO trainingProgramDAO
+            TrainingProgramDAO trainingProgramDAO,
+            ProfileDAO profileDAO
     ) {
         this.trainingSessionDAO = trainingSessionDAO;
         this.trainingCalendarDAO = trainingCalendarDAO;
         this.trainingProgramDAO = trainingProgramDAO;
+        this.profileDAO = profileDAO;
     }
 
     public TrainingSessionDTO createTrainingSession(
+            LocalDate trainingDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            Integer calendarId,
+            Integer trainingProgramId,
+            Integer authenticatedUserId
+    ) {
+        requireAuthenticatedUser(authenticatedUserId);
+
+        validateSessionDetails(
+                trainingDate,
+                startTime,
+                endTime,
+                calendarId,
+                trainingProgramId
+        );
+
+        TrainingCalendar calendar =
+                trainingCalendarDAO.getById(calendarId);
+
+        TrainingProgram trainingProgram =
+                trainingProgramDAO.getById(trainingProgramId);
+
+        ensureCalendarOwnership(calendar, authenticatedUserId);
+        ensureTrainingProgramOwnership(
+                trainingProgram,
+                authenticatedUserId
+        );
+
+        TrainingSession session =
+                new TrainingSession(
+                        trainingDate,
+                        startTime,
+                        endTime,
+                        calendar,
+                        trainingProgram
+                );
+
+        TrainingSession created =
+                trainingSessionDAO.create(session);
+
+        return toDTO(created);
+    }
+
+    public TrainingSessionDTO getTrainingSession(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
+        requireAuthenticatedUser(authenticatedUserId);
+
+        if (id == null) {
+            throw new ValidationException(
+                    "Training session id is required"
+            );
+        }
+
+        TrainingSession session =
+                trainingSessionDAO.getById(id);
+
+        ensureSessionOwnership(session, authenticatedUserId);
+
+        return toDTO(session);
+    }
+
+    public List<TrainingSessionDTO> getAllTrainingSessions(
+            Integer authenticatedUserId
+    ) {
+        requireAuthenticatedUser(authenticatedUserId);
+
+        List<TrainingSession> sessions =
+                trainingSessionDAO.getAll();
+
+        return sessions.stream()
+                .filter(session -> isOwnedByUser(
+                        session,
+                        authenticatedUserId
+                ))
+                .map(this::toDTO)
+                .toList();
+    }
+
+    public TrainingSessionDTO updateTrainingSession(
+            Integer id,
+            LocalDate trainingDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            Integer calendarId,
+            Integer trainingProgramId,
+            boolean completed,
+            String notes,
+            Integer authenticatedUserId
+    ) {
+        requireAuthenticatedUser(authenticatedUserId);
+
+        if (id == null) {
+            throw new ValidationException(
+                    "Training session id is required"
+            );
+        }
+
+        validateSessionDetails(
+                trainingDate,
+                startTime,
+                endTime,
+                calendarId,
+                trainingProgramId
+        );
+
+        TrainingSession session =
+                trainingSessionDAO.getById(id);
+
+        ensureSessionOwnership(session, authenticatedUserId);
+
+        TrainingCalendar calendar =
+                trainingCalendarDAO.getById(calendarId);
+
+        TrainingProgram trainingProgram =
+                trainingProgramDAO.getById(trainingProgramId);
+
+        ensureCalendarOwnership(calendar, authenticatedUserId);
+        ensureTrainingProgramOwnership(
+                trainingProgram,
+                authenticatedUserId
+        );
+
+        session.update(
+                trainingDate,
+                startTime,
+                endTime,
+                completed,
+                notes,
+                calendar,
+                trainingProgram
+        );
+
+        TrainingSession updated =
+                trainingSessionDAO.update(session);
+
+        return toDTO(updated);
+    }
+
+    public void deleteTrainingSession(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
+        requireAuthenticatedUser(authenticatedUserId);
+
+        if (id == null) {
+            throw new ValidationException(
+                    "Training session id is required"
+            );
+        }
+
+        TrainingSession session =
+                trainingSessionDAO.getById(id);
+
+        ensureSessionOwnership(session, authenticatedUserId);
+
+        trainingSessionDAO.delete(id);
+    }
+
+    private void validateSessionDetails(
             LocalDate trainingDate,
             LocalTime startTime,
             LocalTime endTime,
@@ -71,143 +239,90 @@ public class TrainingSessionService {
                     "Training program id is required"
             );
         }
-
-        TrainingCalendar calendar =
-                trainingCalendarDAO.getById(calendarId);
-
-        TrainingProgram trainingProgram =
-                trainingProgramDAO.getById(
-                        trainingProgramId
-                );
-
-        TrainingSession session =
-                new TrainingSession(
-                        trainingDate,
-                        startTime,
-                        endTime,
-                        calendar,
-                        trainingProgram
-                );
-
-        TrainingSession created =
-                trainingSessionDAO.create(session);
-
-        return toDTO(created);
     }
 
-    public TrainingSessionDTO getTrainingSession(
-            Integer id
+    private boolean isOwnedByUser(
+            TrainingSession session,
+            Integer authenticatedUserId
     ) {
-        if (id == null) {
-            throw new ValidationException(
-                    "Training session id is required"
-            );
-        }
-
-        TrainingSession session =
-                trainingSessionDAO.getById(id);
-
-        return toDTO(session);
-    }
-
-    public List<TrainingSessionDTO> getAllTrainingSessions() {
-
-        List<TrainingSession> sessions =
-                trainingSessionDAO.getAll();
-
-        return sessions.stream()
-                .map(this::toDTO)
-                .toList();
-    }
-
-    public TrainingSessionDTO updateTrainingSession(
-            Integer id,
-            LocalDate trainingDate,
-            LocalTime startTime,
-            LocalTime endTime,
-            Integer calendarId,
-            Integer trainingProgramId,
-            boolean completed,
-            String notes
-    ) {
-        if (id == null) {
-            throw new ValidationException(
-                    "Training session id is required"
-            );
-        }
-
-        if (trainingDate == null) {
-            throw new ValidationException(
-                    "Training date is required"
-            );
-        }
-
-        if (startTime == null) {
-            throw new ValidationException(
-                    "Start time is required"
-            );
-        }
-
-        if (endTime == null) {
-            throw new ValidationException(
-                    "End time is required"
-            );
-        }
-
-        if (!endTime.isAfter(startTime)) {
-            throw new ValidationException(
-                    "End time must be after start time"
-            );
-        }
-
-        if (calendarId == null) {
-            throw new ValidationException(
-                    "Calendar id is required"
-            );
-        }
-
-        if (trainingProgramId == null) {
-            throw new ValidationException(
-                    "Training program id is required"
-            );
-        }
-
-        TrainingSession session =
-                trainingSessionDAO.getById(id);
-
         TrainingCalendar calendar =
-                trainingCalendarDAO.getById(calendarId);
-
-        TrainingProgram trainingProgram =
-                trainingProgramDAO.getById(
-                        trainingProgramId
+                trainingCalendarDAO.getById(
+                        session.getCalendar().getId()
                 );
 
-        session.update(
-                trainingDate,
-                startTime,
-                endTime,
-                completed,
-                notes,
+        return isCalendarOwnedByUser(
                 calendar,
-                trainingProgram
+                authenticatedUserId
         );
-
-        TrainingSession updated =
-                trainingSessionDAO.update(session);
-
-        return toDTO(updated);
     }
 
-    public void deleteTrainingSession(Integer id) {
+    private boolean isCalendarOwnedByUser(
+            TrainingCalendar calendar,
+            Integer authenticatedUserId
+    ) {
+        Profile profile =
+                profileDAO.getById(
+                        calendar.getProfile().getId()
+                );
 
-        if (id == null) {
-            throw new ValidationException(
-                    "Training session id is required"
+        return profile.getUser().getId()
+                .equals(authenticatedUserId);
+    }
+
+    private void ensureSessionOwnership(
+            TrainingSession session,
+            Integer authenticatedUserId
+    ) {
+        if (!isOwnedByUser(session, authenticatedUserId)) {
+            throw new ApiException(
+                    403,
+                    "You do not have access to this training session"
             );
         }
+    }
 
-        trainingSessionDAO.delete(id);
+    private void ensureCalendarOwnership(
+            TrainingCalendar calendar,
+            Integer authenticatedUserId
+    ) {
+        if (!isCalendarOwnedByUser(
+                calendar,
+                authenticatedUserId
+        )) {
+            throw new ApiException(
+                    403,
+                    "You do not have access to this training calendar"
+            );
+        }
+    }
+
+    private void ensureTrainingProgramOwnership(
+            TrainingProgram trainingProgram,
+            Integer authenticatedUserId
+    ) {
+        Profile profile =
+                profileDAO.getById(
+                        trainingProgram.getProfile().getId()
+                );
+
+        if (!profile.getUser().getId()
+                .equals(authenticatedUserId)) {
+            throw new ApiException(
+                    403,
+                    "You do not have access to this training program"
+            );
+        }
+    }
+
+    private void requireAuthenticatedUser(
+            Integer authenticatedUserId
+    ) {
+        if (authenticatedUserId == null) {
+            throw new ApiException(
+                    401,
+                    "Authentication is required"
+            );
+        }
     }
 
     private TrainingSessionDTO toDTO(

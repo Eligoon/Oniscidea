@@ -18,6 +18,9 @@ public class TrainingSessionController {
 
     public void create(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         TrainingSessionDTO request =
                 ctx.bodyAsClass(TrainingSessionDTO.class);
 
@@ -27,7 +30,8 @@ public class TrainingSessionController {
                         request.getStartTime(),
                         request.getEndTime(),
                         request.getCalendarId(),
-                        request.getTrainingProgramId()
+                        request.getTrainingProgramId(),
+                        authenticatedUserId
                 );
 
         ctx.status(201).json(session);
@@ -35,13 +39,21 @@ public class TrainingSessionController {
 
     public void getAll(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         List<TrainingSessionDTO> sessions =
-                trainingSessionService.getAllTrainingSessions();
+                trainingSessionService.getAllTrainingSessions(
+                        authenticatedUserId
+                );
 
         ctx.json(sessions);
     }
 
     public void getById(Context ctx) {
+
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         Integer id =
                 Integer.parseInt(
@@ -49,12 +61,18 @@ public class TrainingSessionController {
                 );
 
         TrainingSessionDTO session =
-                trainingSessionService.getTrainingSession(id);
+                trainingSessionService.getTrainingSession(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.json(session);
     }
 
     public void update(Context ctx) {
+
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         Integer id =
                 Integer.parseInt(
@@ -73,7 +91,8 @@ public class TrainingSessionController {
                         request.getCalendarId(),
                         request.getTrainingProgramId(),
                         request.isCompleted(),
-                        request.getNotes()
+                        request.getNotes(),
+                        authenticatedUserId
                 );
 
         ctx.json(session);
@@ -81,12 +100,18 @@ public class TrainingSessionController {
 
     public void delete(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
 
-        trainingSessionService.deleteTrainingSession(id);
+        trainingSessionService.deleteTrainingSession(
+                id,
+                authenticatedUserId
+        );
 
         ctx.status(204);
     }

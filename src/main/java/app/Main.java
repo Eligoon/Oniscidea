@@ -165,7 +165,8 @@ public class Main {
                 new TrainingSessionService(
                         trainingSessionDAO,
                         trainingCalendarDAO,
-                        trainingProgramDAO
+                        trainingProgramDAO,
+                        profileDAO
                 );
 
         TrainingSessionController trainingSessionController =
