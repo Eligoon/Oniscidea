@@ -1,9 +1,11 @@
+
 package app.services;
 
 import app.daos.UserDAO;
 import app.dtos.UserDTO;
 import app.entities.User;
 import app.exceptions.ValidationException;
+import io.javalin.http.ForbiddenResponse;
 
 import java.util.List;
 
@@ -20,7 +22,6 @@ public class UserService {
             String email,
             String password
     ) {
-
         if (name == null || name.isBlank()) {
             throw new ValidationException(
                     "Name is required"
@@ -49,13 +50,11 @@ public class UserService {
         return toDTO(user);
     }
 
-    public UserDTO getUser(Integer id) {
-
-        if (id == null) {
-            throw new ValidationException(
-                    "User ID is required"
-            );
-        }
+    public UserDTO getUser(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
+        verifyOwnership(id, authenticatedUserId);
 
         User user =
                 userDAO.getById(id);
@@ -63,28 +62,31 @@ public class UserService {
         return toDTO(user);
     }
 
-    public List<UserDTO> getAllUsers() {
+    public List<UserDTO> getAllUsers(
+            Integer authenticatedUserId
+    ) {
+        if (authenticatedUserId == null) {
+            throw new ForbiddenResponse(
+                    "You do not have access to this user"
+            );
+        }
 
-        List<User> users =
-                userDAO.getAll();
-
-        return users.stream()
-                .map(this::toDTO)
-                .toList();
+        return List.of(
+                getUser(
+                        authenticatedUserId,
+                        authenticatedUserId
+                )
+        );
     }
 
     public UserDTO updateUser(
             Integer id,
             String name,
             String email,
-            String password
+            String password,
+            Integer authenticatedUserId
     ) {
-
-        if (id == null) {
-            throw new ValidationException(
-                    "User id is required"
-            );
-        }
+        verifyOwnership(id, authenticatedUserId);
 
         if (name == null || name.isBlank()) {
             throw new ValidationException(
@@ -119,13 +121,11 @@ public class UserService {
         return toDTO(updatedUser);
     }
 
-    public void deleteUser(Integer id) {
-
-        if (id == null) {
-            throw new ValidationException(
-                    "User id is required"
-            );
-        }
+    public void deleteUser(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
+        verifyOwnership(id, authenticatedUserId);
 
         userDAO.delete(id);
     }
@@ -134,7 +134,6 @@ public class UserService {
             String email,
             String password
     ) {
-
         if (email == null || email.isBlank()) {
             throw new ValidationException(
                     "Email is required"
@@ -156,8 +155,25 @@ public class UserService {
         return toDTO(user);
     }
 
-    private UserDTO toDTO(User user) {
+    private void verifyOwnership(
+            Integer id,
+            Integer authenticatedUserId
+    ) {
+        if (id == null) {
+            throw new ValidationException(
+                    "User ID is required"
+            );
+        }
 
+        if (authenticatedUserId == null
+                || !authenticatedUserId.equals(id)) {
+            throw new ForbiddenResponse(
+                    "You do not have access to this user"
+            );
+        }
+    }
+
+    private UserDTO toDTO(User user) {
         return new UserDTO(
                 user.getId(),
                 user.getName(),

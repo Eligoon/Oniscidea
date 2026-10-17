@@ -23,7 +23,6 @@ public class UserController {
     }
 
     public void create(Context ctx) {
-
         UserDTO request =
                 ctx.bodyAsClass(UserDTO.class);
 
@@ -38,32 +37,43 @@ public class UserController {
     }
 
     public void getById(Context ctx) {
-
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         UserDTO user =
-                userService.getUser(id);
+                userService.getUser(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.json(user);
     }
 
     public void getAll(Context ctx) {
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         List<UserDTO> users =
-                userService.getAllUsers();
+                userService.getAllUsers(
+                        authenticatedUserId
+                );
 
         ctx.json(users);
     }
 
     public void update(Context ctx) {
-
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
+
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         UserDTO request =
                 ctx.bodyAsClass(UserDTO.class);
@@ -73,26 +83,31 @@ public class UserController {
                         id,
                         request.getName(),
                         request.getEmail(),
-                        request.getPassword()
+                        request.getPassword(),
+                        authenticatedUserId
                 );
 
         ctx.json(user);
     }
 
     public void delete(Context ctx) {
-
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
 
-        userService.deleteUser(id);
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
+        userService.deleteUser(
+                id,
+                authenticatedUserId
+        );
 
         ctx.status(204);
     }
 
     public void login(Context ctx) {
-
         UserDTO request =
                 ctx.bodyAsClass(UserDTO.class);
 
