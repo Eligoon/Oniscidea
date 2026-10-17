@@ -2,6 +2,7 @@ package app.controllers;
 
 import app.services.GoogleOAuthService;
 import io.javalin.http.Context;
+import io.javalin.http.UnauthorizedResponse;
 
 public class GoogleOAuthController {
 
@@ -10,40 +11,28 @@ public class GoogleOAuthController {
     public GoogleOAuthController(
             GoogleOAuthService googleOAuthService
     ) {
-        this.googleOAuthService =
-                googleOAuthService;
+        this.googleOAuthService = googleOAuthService;
     }
 
     public void connect(Context ctx) {
+        Integer userId = ctx.attribute("authenticatedUserId");
 
-        Integer userId =
-                Integer.parseInt(
-                        ctx.queryParam("userId")
-                );
+        if (userId == null) {
+            throw new UnauthorizedResponse("User must be logged in");
+        }
 
         String authorizationUrl =
-                googleOAuthService.getAuthorizationUrl(
-                        userId
-                );
+                googleOAuthService.getAuthorizationUrl(userId);
 
         ctx.redirect(authorizationUrl);
     }
 
     public void callback(Context ctx) {
+        String code = ctx.queryParam("code");
+        String state = ctx.queryParam("state");
 
-        String code =
-                ctx.queryParam("code");
+        googleOAuthService.authenticate(code, state);
 
-        String state =
-                ctx.queryParam("state");
-
-        googleOAuthService.authenticate(
-                code,
-                state
-        );
-
-        ctx.result(
-                "Google Calendar connected successfully"
-        );
+        ctx.result("Google Calendar connected successfully");
     }
 }
