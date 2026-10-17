@@ -96,6 +96,7 @@ public class Main {
                         trainingProgramExerciseService
                 );
 
+        // Exercises
         ExerciseService exerciseService =
                 new ExerciseService(exerciseDAO);
 
@@ -478,6 +479,11 @@ public class Main {
                     );
 
                     // Exercises
+                    config.routes.post(
+                            "/api/exercises",
+                            exerciseController::create
+                    );
+
                     config.routes.get(
                             "/api/exercises",
                             exerciseController::getAll

@@ -1,5 +1,6 @@
 package app.controllers;
 
+import app.dtos.CreateExerciseDTO;
 import app.dtos.ExerciseDTO;
 import app.services.ExerciseService;
 import io.javalin.http.Context;
@@ -16,8 +17,18 @@ public class ExerciseController {
         this.exerciseService = exerciseService;
     }
 
-    public void getAll(Context ctx) {
+    public void create(Context ctx) {
+        CreateExerciseDTO dto =
+                ctx.bodyAsClass(CreateExerciseDTO.class);
 
+        ExerciseDTO exercise =
+                exerciseService.createExercise(dto);
+
+        ctx.status(201);
+        ctx.json(exercise);
+    }
+
+    public void getAll(Context ctx) {
         List<ExerciseDTO> exercises =
                 exerciseService.getAllExercises();
 
@@ -25,11 +36,8 @@ public class ExerciseController {
     }
 
     public void getById(Context ctx) {
-
         Integer id =
-                Integer.parseInt(
-                        ctx.pathParam("id")
-                );
+                Integer.parseInt(ctx.pathParam("id"));
 
         ExerciseDTO exercise =
                 exerciseService.getExercise(id);
