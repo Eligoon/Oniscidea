@@ -9,6 +9,9 @@ import app.utils.Utils;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.CredentialRefreshListener;
+import com.google.api.client.auth.oauth2.TokenErrorResponse;
+import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
@@ -47,7 +50,6 @@ public class GoogleCalendarService {
     private GoogleCalendarConnection getConnection(
             Integer userId
     ) {
-
         if (userId == null) {
             throw new ApiException(
                     401,
@@ -70,16 +72,39 @@ public class GoogleCalendarService {
     private Calendar getCalendar(
             GoogleCalendarConnection connection
     ) {
-
         try {
+            CredentialRefreshListener refreshListener =
+                    new CredentialRefreshListener() {
+                        @Override
+                        public void onTokenResponse(
+                                Credential credential,
+                                TokenResponse tokenResponse
+                        ) throws IOException {
+                            connection.updateTokens(
+                                    credential.getAccessToken(),
+                                    credential.getRefreshToken()
+                            );
+
+                            connectionDAO.update(connection);
+                        }
+
+                        @Override
+                        public void onTokenErrorResponse(
+                                Credential credential,
+                                TokenErrorResponse tokenErrorResponse
+                        ) throws IOException {
+                            throw new IOException(
+                                    "Could not refresh Google Calendar access token"
+                            );
+                        }
+                    };
 
             Credential credential =
                     new Credential.Builder(
                             BearerToken.authorizationHeaderAccessMethod()
                     )
                             .setTransport(
-                                    GoogleNetHttpTransport
-                                            .newTrustedTransport()
+                                    GoogleNetHttpTransport.newTrustedTransport()
                             )
                             .setJsonFactory(
                                     GsonFactory.getDefaultInstance()
@@ -93,13 +118,10 @@ public class GoogleCalendarService {
                                             CLIENT_SECRET
                                     )
                             )
+                            .addRefreshListener(refreshListener)
                             .build()
-                            .setAccessToken(
-                                    connection.getAccessToken()
-                            )
-                            .setRefreshToken(
-                                    connection.getRefreshToken()
-                            );
+                            .setAccessToken(connection.getAccessToken())
+                            .setRefreshToken(connection.getRefreshToken());
 
             return new Calendar.Builder(
                     GoogleNetHttpTransport.newTrustedTransport(),
@@ -110,7 +132,6 @@ public class GoogleCalendarService {
                     .build();
 
         } catch (Exception e) {
-
             throw new ApiException(
                     500,
                     "Could not connect to Google Calendar",
@@ -126,45 +147,26 @@ public class GoogleCalendarService {
             ZonedDateTime start,
             ZonedDateTime end
     ) {
-
         if (title == null || title.isBlank()) {
             throw new ValidationException(
                     "Event title is required"
             );
         }
 
-        if (start == null || end == null) {
-            throw new ValidationException(
-                    "Event start and end are required"
-            );
-        }
-
-        if (!end.isAfter(start)) {
-            throw new ValidationException(
-                    "Event end must be after event start"
-            );
-        }
+        validateTimes(start, end);
 
         GoogleCalendarConnection connection =
                 getConnection(userId);
 
         try {
-
-            Calendar calendar =
-                    getCalendar(connection);
+            Calendar calendar = getCalendar(connection);
 
             Event event =
                     new Event()
                             .setSummary(title)
-                            .setDescription(description);
-
-            event.setStart(
-                    toEventDateTime(start)
-            );
-
-            event.setEnd(
-                    toEventDateTime(end)
-            );
+                            .setDescription(description)
+                            .setStart(toEventDateTime(start))
+                            .setEnd(toEventDateTime(end));
 
             Event createdEvent =
                     calendar.events()
@@ -177,7 +179,6 @@ public class GoogleCalendarService {
             return createdEvent.getId();
 
         } catch (IOException e) {
-
             throw new ApiException(
                     500,
                     "Could not create Google Calendar event",
@@ -194,7 +195,6 @@ public class GoogleCalendarService {
             ZonedDateTime start,
             ZonedDateTime end
     ) {
-
         if (eventId == null || eventId.isBlank()) {
             throw new ValidationException(
                     "Google event ID is required"
@@ -207,25 +207,13 @@ public class GoogleCalendarService {
             );
         }
 
-        if (start == null || end == null) {
-            throw new ValidationException(
-                    "Event start and end are required"
-            );
-        }
-
-        if (!end.isAfter(start)) {
-            throw new ValidationException(
-                    "Event end must be after event start"
-            );
-        }
+        validateTimes(start, end);
 
         GoogleCalendarConnection connection =
                 getConnection(userId);
 
         try {
-
-            Calendar calendar =
-                    getCalendar(connection);
+            Calendar calendar = getCalendar(connection);
 
             Event event =
                     calendar.events()
@@ -249,7 +237,6 @@ public class GoogleCalendarService {
                     .execute();
 
         } catch (IOException e) {
-
             throw new ApiException(
                     500,
                     "Could not update Google Calendar event",
@@ -262,18 +249,17 @@ public class GoogleCalendarService {
             Integer userId,
             String eventId
     ) {
-
         if (eventId == null || eventId.isBlank()) {
-            return;
+            throw new ValidationException(
+                    "Google event ID is required"
+            );
         }
 
         GoogleCalendarConnection connection =
                 getConnection(userId);
 
         try {
-
-            Calendar calendar =
-                    getCalendar(connection);
+            Calendar calendar = getCalendar(connection);
 
             calendar.events()
                     .delete(
@@ -283,7 +269,6 @@ public class GoogleCalendarService {
                     .execute();
 
         } catch (IOException e) {
-
             throw new ApiException(
                     500,
                     "Could not delete Google Calendar event",
@@ -292,16 +277,30 @@ public class GoogleCalendarService {
         }
     }
 
+    private void validateTimes(
+            ZonedDateTime start,
+            ZonedDateTime end
+    ) {
+        if (start == null || end == null) {
+            throw new ValidationException(
+                    "Event start and end are required"
+            );
+        }
+
+        if (!end.isAfter(start)) {
+            throw new ValidationException(
+                    "Event end must be after event start"
+            );
+        }
+    }
+
     private EventDateTime toEventDateTime(
             ZonedDateTime dateTime
     ) {
-
         return new EventDateTime()
                 .setDateTime(
                         new com.google.api.client.util.DateTime(
-                                Date.from(
-                                        dateTime.toInstant()
-                                )
+                                Date.from(dateTime.toInstant())
                         )
                 )
                 .setTimeZone(
