@@ -1,3 +1,4 @@
+
 package app.controllers;
 
 import app.dtos.NoteDTO;
@@ -17,6 +18,8 @@ public class NoteController {
     }
 
     public void create(Context ctx) {
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         NoteDTO request =
                 ctx.bodyAsClass(
@@ -27,39 +30,51 @@ public class NoteController {
                 noteService.createNote(
                         request.getTitle(),
                         request.getText(),
-                        request.getProfileId()
+                        request.getProfileId(),
+                        authenticatedUserId
                 );
 
         ctx.status(201).json(note);
     }
 
     public void getAll(Context ctx) {
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         List<NoteDTO> notes =
-                noteService.getAllNotes();
+                noteService.getAllNotes(
+                        authenticatedUserId
+                );
 
         ctx.json(notes);
     }
 
     public void getById(Context ctx) {
-
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         NoteDTO note =
-                noteService.getNote(id);
+                noteService.getNote(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.json(note);
     }
 
     public void update(Context ctx) {
-
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
+
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         NoteDTO request =
                 ctx.bodyAsClass(
@@ -70,20 +85,26 @@ public class NoteController {
                 noteService.updateNote(
                         id,
                         request.getTitle(),
-                        request.getText()
+                        request.getText(),
+                        authenticatedUserId
                 );
 
         ctx.json(note);
     }
 
     public void delete(Context ctx) {
-
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
 
-        noteService.deleteNote(id);
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
+        noteService.deleteNote(
+                id,
+                authenticatedUserId
+        );
 
         ctx.status(204);
     }
