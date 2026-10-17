@@ -16,6 +16,9 @@ public class ExerciseLogController {
 
     public void create(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         Integer trainingSessionId =
                 Integer.parseInt(
                         ctx.pathParam("id")
@@ -29,7 +32,8 @@ public class ExerciseLogController {
         ExerciseLogDTO exerciseLog =
                 exerciseLogService.createExerciseLog(
                         trainingSessionId,
-                        request.getExerciseId()
+                        request.getExerciseId(),
+                        authenticatedUserId
                 );
 
         ctx.status(201).json(exerciseLog);
@@ -37,13 +41,19 @@ public class ExerciseLogController {
 
     public void getById(Context ctx) {
 
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
         Integer id =
                 Integer.parseInt(
                         ctx.pathParam("id")
                 );
 
         ExerciseLogDTO exerciseLog =
-                exerciseLogService.getExerciseLog(id);
+                exerciseLogService.getExerciseLog(
+                        id,
+                        authenticatedUserId
+                );
 
         ctx.json(exerciseLog);
     }

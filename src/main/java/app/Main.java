@@ -199,7 +199,9 @@ public class Main {
                 new ExerciseLogService(
                         exerciseLogDAO,
                         trainingSessionDAO,
-                        exerciseDAO
+                        exerciseDAO,
+                        trainingCalendarDAO,
+                        profileDAO
                 );
 
         SetLogService setLogService =
