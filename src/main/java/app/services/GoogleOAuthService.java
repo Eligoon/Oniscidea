@@ -220,7 +220,13 @@ public class GoogleOAuthService {
                         "Google OAuth token request failed with HTTP status: "
                                 + e.getStatusCode()
                 );
+
+                System.err.println(
+                        "Google OAuth response: "
+                                + e.getContent()
+                );
             }
+
 
             throw new ApiException(
                     500,
