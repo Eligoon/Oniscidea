@@ -8,14 +8,21 @@ import java.util.Properties;
 
 public class Utils {
 
-    public static String getPropertyValue(String propName, String resourceName)  {
+
+    public static String getPropertyValue(String propName, String resourceName) {
+        String envValue = System.getenv(propName);
+
+        if (envValue != null && !envValue.isBlank()) {
+            return envValue.trim();
+        }
+
         try (InputStream is = Utils.class.getClassLoader().getResourceAsStream(resourceName)) {
             Properties prop = new Properties();
             prop.load(is);
 
             String value = prop.getProperty(propName);
             if (value != null) {
-                return value.trim();  // Trim whitespace
+                return value.trim();
             } else {
                 throw new ApiException(500, String.format("Property %s not found in %s", propName, resourceName));
             }
@@ -23,4 +30,5 @@ public class Utils {
             throw new ApiException(500, String.format("Could not read property %s.", propName));
         }
     }
+
 }
