@@ -16,7 +16,9 @@ public class GoogleTokenEncryption {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private static final String ENCRYPTION_KEY =
-            Utils.getPropertyValue(
+            System.getenv("GOOGLE_TOKEN_ENCRYPTION_KEY") != null
+                    ? System.getenv("GOOGLE_TOKEN_ENCRYPTION_KEY")
+                    : Utils.getPropertyValue(
                     "GOOGLE_TOKEN_ENCRYPTION_KEY",
                     "config.properties"
             );
