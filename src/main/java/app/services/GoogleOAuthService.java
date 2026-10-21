@@ -162,12 +162,6 @@ public class GoogleOAuthService {
                             .build()
                             .setFromTokenResponse(tokenResponse);
 
-            System.out.println(
-                    "Google access token received: "
-                            + (credential.getAccessToken() != null
-                            && !credential.getAccessToken().isBlank())
-            );
-
             Oauth2 oauth2 =
                     new Oauth2.Builder(
                             HTTP_TRANSPORT,
