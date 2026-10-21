@@ -2,7 +2,6 @@
 package app.entities;
 
 import app.utils.GoogleTokenConverter;
-import app.utils.GoogleTokenEncryption;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
@@ -31,15 +30,11 @@ public class GoogleCalendarConnection {
     @Column(nullable = false)
     private String googleUserId;
 
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
     @ToString.Exclude
     @Convert(converter = GoogleTokenConverter.class)
     @Column(nullable = false, length = 4000)
     private String accessToken;
 
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
     @ToString.Exclude
     @Convert(converter = GoogleTokenConverter.class)
     @Column(nullable = false, length = 4000)
@@ -69,32 +64,16 @@ public class GoogleCalendarConnection {
     ) {
         this.user = user;
         this.googleUserId = googleUserId;
-        setAccessToken(accessToken);
-        setRefreshToken(refreshToken);
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
         this.calendarId = "primary";
     }
 
-    public String getAccessToken() {
-        return GoogleTokenEncryption.decrypt(accessToken);
-    }
-
-    public String getRefreshToken() {
-        return GoogleTokenEncryption.decrypt(refreshToken);
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = GoogleTokenEncryption.encrypt(accessToken);
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = GoogleTokenEncryption.encrypt(refreshToken);
-    }
-
     public void updateTokens(String accessToken, String refreshToken) {
-        setAccessToken(accessToken);
+        this.accessToken = accessToken;
 
         if (refreshToken != null && !refreshToken.isBlank()) {
-            setRefreshToken(refreshToken);
+            this.refreshToken = refreshToken;
         }
     }
 
