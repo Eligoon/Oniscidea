@@ -1,6 +1,7 @@
 
 package app.entities;
 
+import app.utils.GoogleTokenConverter;
 import app.utils.GoogleTokenEncryption;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,12 +34,14 @@ public class GoogleCalendarConnection {
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
+    @Convert(converter = GoogleTokenConverter.class)
     @Column(nullable = false, length = 4000)
     private String accessToken;
 
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     @ToString.Exclude
+    @Convert(converter = GoogleTokenConverter.class)
     @Column(nullable = false, length = 4000)
     private String refreshToken;
 
