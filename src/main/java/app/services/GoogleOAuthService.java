@@ -58,6 +58,9 @@ public class GoogleOAuthService {
     private static final String CALENDAR_SCOPE =
             "https://www.googleapis.com/auth/calendar";
 
+    private static final String PROFILE_SCOPE =
+            "https://www.googleapis.com/auth/userinfo.profile";
+
     private static final NetHttpTransport HTTP_TRANSPORT =
             new NetHttpTransport();
 
@@ -82,7 +85,7 @@ public class GoogleOAuthService {
                 JSON_FACTORY,
                 CLIENT_ID,
                 CLIENT_SECRET,
-                Collections.singletonList(CALENDAR_SCOPE)
+                java.util.Arrays.asList(CALENDAR_SCOPE, PROFILE_SCOPE)
         )
                 .setAccessType("offline")
                 .setApprovalPrompt("force")
@@ -158,6 +161,12 @@ public class GoogleOAuthService {
                             )
                             .build()
                             .setFromTokenResponse(tokenResponse);
+
+            System.out.println(
+                    "Google access token received: "
+                            + (credential.getAccessToken() != null
+                            && !credential.getAccessToken().isBlank())
+            );
 
             Oauth2 oauth2 =
                     new Oauth2.Builder(
