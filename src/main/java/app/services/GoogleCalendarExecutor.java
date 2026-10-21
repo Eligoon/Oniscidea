@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-// Need to find use
+// Need to find use for this
 public class GoogleCalendarExecutor {
 
     private static final Logger logger =
