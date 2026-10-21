@@ -9,9 +9,7 @@ import java.util.concurrent.Executors;
 public class GoogleCalendarExecutor {
 
     private static final Logger logger =
-            LoggerFactory.getLogger(
-                    GoogleCalendarExecutor.class
-            );
+            LoggerFactory.getLogger(GoogleCalendarExecutor.class);
 
     private final ExecutorService executorService;
 
