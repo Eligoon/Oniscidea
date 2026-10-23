@@ -2,6 +2,7 @@ package app.services;
 
 import app.daos.ExerciseDAO;
 import app.daos.UserDAO;
+import app.dtos.BodyPartDTO;
 import app.dtos.CreateExerciseDTO;
 import app.dtos.ExerciseDTO;
 import app.entities.Exercise;
@@ -109,11 +110,23 @@ public class ExerciseService {
         exerciseDAO.deleteOwned(id, userId);
     }
 
+
     private ExerciseDTO toDTO(Exercise exercise) {
+        List<BodyPartDTO> bodyParts = exercise.getBodyParts()
+                .stream()
+                .map(bodyPart -> new BodyPartDTO(
+                        bodyPart.getId(),
+                        bodyPart.getName(),
+                        bodyPart.getColor()
+                ))
+                .toList();
+
         return new ExerciseDTO(
                 exercise.getId(),
                 exercise.getName(),
-                exercise.getDescription()
+                exercise.getDescription(),
+                bodyParts
         );
     }
+
 }
