@@ -74,6 +74,10 @@ public class Exercise {
         bodyParts.remove(bodyPart);
     }
 
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o)
