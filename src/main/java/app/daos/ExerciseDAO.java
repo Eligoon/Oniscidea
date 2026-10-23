@@ -220,4 +220,119 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
             }
         }
     }
+
+    public Exercise updateOwned(
+            Integer id,
+            Integer userId,
+            String name,
+            String description
+    ) {
+        if (id == null || userId == null) {
+            throw new ValidationException(
+                    "Exercise id and user id are required"
+            );
+        }
+
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+
+            try {
+                TypedQuery<Exercise> query = em.createQuery(
+                        "SELECT e FROM Exercise e " +
+                                "WHERE e.id = :id AND e.owner.id = :userId",
+                        Exercise.class
+                );
+
+                query.setParameter("id", id);
+                query.setParameter("userId", userId);
+
+                List<Exercise> results = query.getResultList();
+
+                if (results.isEmpty()) {
+                    throw new ResourceNotFoundException(
+                            "Custom exercise not found"
+                    );
+                }
+
+                Exercise existing = results.get(0);
+
+                existing.setName(name);
+                existing.setDescription(description);
+
+                em.getTransaction().commit();
+
+                return existing;
+
+            } catch (PersistenceException e) {
+                if (em.getTransaction().isActive()) {
+                    em.getTransaction().rollback();
+                }
+
+                throw new DatabaseException(
+                        "Update exercise failed",
+                        e
+                );
+
+            } catch (RuntimeException e) {
+                if (em.getTransaction().isActive()) {
+                    em.getTransaction().rollback();
+                }
+
+                throw e;
+            }
+        }
+    }
+
+    public boolean deleteOwned(Integer id, Integer userId) {
+        if (id == null || userId == null) {
+            throw new ValidationException(
+                    "Exercise id and user id are required"
+            );
+        }
+
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+
+            try {
+                TypedQuery<Exercise> query = em.createQuery(
+                        "SELECT e FROM Exercise e " +
+                                "WHERE e.id = :id AND e.owner.id = :userId",
+                        Exercise.class
+                );
+
+                query.setParameter("id", id);
+                query.setParameter("userId", userId);
+
+                List<Exercise> results = query.getResultList();
+
+                if (results.isEmpty()) {
+                    throw new ResourceNotFoundException(
+                            "Custom exercise not found"
+                    );
+                }
+
+                em.remove(results.get(0));
+                em.getTransaction().commit();
+
+                return true;
+
+            } catch (PersistenceException e) {
+                if (em.getTransaction().isActive()) {
+                    em.getTransaction().rollback();
+                }
+
+                throw new DatabaseException(
+                        "Delete exercise failed",
+                        e
+                );
+
+            } catch (RuntimeException e) {
+                if (em.getTransaction().isActive()) {
+                    em.getTransaction().rollback();
+                }
+
+                throw e;
+            }
+        }
+    }
 }
