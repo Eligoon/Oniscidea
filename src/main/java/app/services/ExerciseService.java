@@ -43,8 +43,9 @@ public class ExerciseService {
         return toDTO(exercise);
     }
 
-    public List<ExerciseDTO> getAllExercises() {
-        List<Exercise> exercises = exerciseDAO.getAll();
+    public List<ExerciseDTO> getAllExercises(Integer userId) {
+        List<Exercise> exercises =
+                exerciseDAO.getAvailableExercises(userId);
 
         return exercises.stream()
                 .map(this::toDTO)
