@@ -64,6 +64,7 @@ public class Exercise {
     public Exercise(String name, String description) {
         this.name = name;
         this.description = description;
+        this.bodyParts = new HashSet<>();
     }
 
     public void addBodyPart(BodyPart bodyPart) {
