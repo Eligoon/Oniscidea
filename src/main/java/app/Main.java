@@ -1,5 +1,7 @@
 package app;
 
+import app.config.BodyPartSeeder;
+import app.config.ExerciseSeeder;
 import app.config.HibernateConfig;
 import app.controllers.*;
 import app.daos.*;
@@ -22,6 +24,12 @@ public class Main {
 
         EntityManagerFactory emf =
                 HibernateConfig.getEntityManagerFactory();
+
+        BodyPartDAO bodyPartDAO = new BodyPartDAO(emf);
+        ExerciseDAO exerciseDAO = new ExerciseDAO(emf);
+
+        BodyPartSeeder.seed(bodyPartDAO);
+        ExerciseSeeder.seed(exerciseDAO, bodyPartDAO);
 
         createApp(emf).start(7070);
     }
