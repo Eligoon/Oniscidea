@@ -70,6 +70,45 @@ public class ExerciseService {
                 .toList();
     }
 
+    public ExerciseDTO updateExercise(
+            Integer id,
+            CreateExerciseDTO dto,
+            Integer userId
+    ) {
+        if (id == null) {
+            throw new ValidationException("Exercise id is required");
+        }
+
+        if (userId == null) {
+            throw new ValidationException("User id is required");
+        }
+
+        if (dto == null || dto.getName() == null || dto.getName().isBlank()) {
+            throw new ValidationException("Exercise name is required");
+        }
+
+        Exercise updated = exerciseDAO.updateOwned(
+                id,
+                userId,
+                dto.getName().trim(),
+                dto.getDescription()
+        );
+
+        return toDTO(updated);
+    }
+
+    public void deleteExercise(Integer id, Integer userId) {
+        if (id == null) {
+            throw new ValidationException("Exercise id is required");
+        }
+
+        if (userId == null) {
+            throw new ValidationException("User id is required");
+        }
+
+        exerciseDAO.deleteOwned(id, userId);
+    }
+
     private ExerciseDTO toDTO(Exercise exercise) {
         return new ExerciseDTO(
                 exercise.getId(),
