@@ -307,8 +307,6 @@ public class Main {
                                         && method.equals("POST"))
                                         || (path.equals("/api/google-calendar/callback")
                                         && method.equals("GET"))
-                                        || (path.equals("/api/exercises")
-                                        && method.equals("GET"))
                                         || (path.matches("/api/exercises/\\d+")
                                         && method.equals("GET"))
                                         || (path.equals("/api/body-parts")
