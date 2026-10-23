@@ -48,4 +48,28 @@ public class ExerciseController {
 
         ctx.json(exercise);
     }
+
+    public void update(Context ctx) {
+        Integer id = Integer.parseInt(ctx.pathParam("id"));
+
+        Integer userId = ctx.attribute("authenticatedUserId");
+
+        CreateExerciseDTO dto =
+                ctx.bodyAsClass(CreateExerciseDTO.class);
+
+        ExerciseDTO exercise =
+                exerciseService.updateExercise(id, dto, userId);
+
+        ctx.json(exercise);
+    }
+
+    public void delete(Context ctx) {
+        Integer id = Integer.parseInt(ctx.pathParam("id"));
+
+        Integer userId = ctx.attribute("authenticatedUserId");
+
+        exerciseService.deleteExercise(id, userId);
+
+        ctx.status(204);
+    }
 }
