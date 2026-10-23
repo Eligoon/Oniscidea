@@ -493,6 +493,16 @@ public class Main {
                             exerciseController::getById
                     );
 
+                    config.routes.put(
+                            "/api/exercises/{id}",
+                            exerciseController::update
+                    );
+
+                    config.routes.delete(
+                            "/api/exercises/{id}",
+                            exerciseController::delete
+                    );
+
                     // Exercise BodyPart
                     config.routes.post(
                             "/api/exercises/{id}/body-parts/{bodyPartId}",
