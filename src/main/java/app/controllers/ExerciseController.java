@@ -21,8 +21,10 @@ public class ExerciseController {
         CreateExerciseDTO dto =
                 ctx.bodyAsClass(CreateExerciseDTO.class);
 
+        Integer userId = ctx.attribute("authenticatedUserId");
+
         ExerciseDTO exercise =
-                exerciseService.createExercise(dto);
+                exerciseService.createExercise(dto, userId);
 
         ctx.status(201);
         ctx.json(exercise);
