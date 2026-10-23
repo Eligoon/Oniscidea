@@ -29,8 +29,10 @@ public class ExerciseController {
     }
 
     public void getAll(Context ctx) {
+        Integer userId = ctx.attribute("authenticatedUserId");
+
         List<ExerciseDTO> exercises =
-                exerciseService.getAllExercises();
+                exerciseService.getAllExercises(userId);
 
         ctx.json(exercises);
     }
