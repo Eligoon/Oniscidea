@@ -194,4 +194,30 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
 
         return true;
     }
+
+    public List<Exercise> getAvailableExercises(Integer userId) {
+        if (userId == null) {
+            throw new ValidationException("User id is required");
+        }
+
+        try (EntityManager em = emf.createEntityManager()) {
+            try {
+                TypedQuery<Exercise> query = em.createQuery(
+                        "SELECT e FROM Exercise e " +
+                                "WHERE e.owner IS NULL OR e.owner.id = :userId",
+                        Exercise.class
+                );
+
+                query.setParameter("userId", userId);
+
+                return query.getResultList();
+
+            } catch (PersistenceException e) {
+                throw new DatabaseException(
+                        "Get available exercises failed",
+                        e
+                );
+            }
+        }
+    }
 }
