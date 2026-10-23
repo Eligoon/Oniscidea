@@ -54,6 +54,7 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
         return exercise;
     }
 
+
     @Override
     public Exercise getById(Integer id) {
         if (id == null) {
@@ -62,24 +63,29 @@ public class ExerciseDAO implements IDAO<Exercise, Integer> {
 
         try (EntityManager em = emf.createEntityManager()) {
             try {
-                Exercise exercise = em.find(Exercise.class, id);
+                TypedQuery<Exercise> query = em.createQuery(
+                        "SELECT DISTINCT e FROM Exercise e " +
+                                "LEFT JOIN FETCH e.bodyParts " +
+                                "WHERE e.id = :id",
+                        Exercise.class
+                );
 
-                if (exercise != null) {
-                    return exercise;
+                query.setParameter("id", id);
+
+                List<Exercise> results = query.getResultList();
+
+                if (!results.isEmpty()) {
+                    return results.get(0);
                 }
 
-                throw new ResourceNotFoundException(
-                        "Exercise not found"
-                );
+                throw new ResourceNotFoundException("Exercise not found");
 
             } catch (PersistenceException e) {
-                throw new DatabaseException(
-                        "Get exercise failed",
-                        e
-                );
+                throw new DatabaseException("Get exercise failed", e);
             }
         }
     }
+
 
     @Override
     public List<Exercise> getAll() {
