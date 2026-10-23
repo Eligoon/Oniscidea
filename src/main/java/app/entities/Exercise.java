@@ -78,6 +78,14 @@ public class Exercise {
         this.owner = owner;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o)
