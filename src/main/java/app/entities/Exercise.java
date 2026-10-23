@@ -28,6 +28,11 @@ public class Exercise {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
+    @ToString.Exclude
+    private User owner;
+
     @ManyToMany
     @JoinTable(
             name = "exercise_body_parts",
@@ -36,6 +41,7 @@ public class Exercise {
     )
     @ToString.Exclude
     @Builder.Default
+
 
     private Set<BodyPart> bodyParts = new HashSet<>();
 
