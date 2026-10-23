@@ -99,7 +99,7 @@ public class Main {
 
         // Exercises
         ExerciseService exerciseService =
-                new ExerciseService(exerciseDAO);
+                new ExerciseService(exerciseDAO, userDAO);
 
         ExerciseController exerciseController =
                 new ExerciseController(exerciseService);
