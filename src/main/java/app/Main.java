@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import app.services.JwtService;
 import app.services.JwtAuthentication;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class Main {
 
@@ -263,6 +264,21 @@ public class Main {
                                         new ErrorResponseDTO(
                                                 e.getCode(),
                                                 e.getMessage()
+                                        )
+                                );
+                            }
+                    );
+
+                    config.routes.exception(
+                            JsonProcessingException.class,
+                            (e, ctx) -> {
+                                logger.warn("Invalid JSON request body: {}", e.getOriginalMessage());
+
+                                ctx.status(400);
+                                ctx.json(
+                                        new ErrorResponseDTO(
+                                                400,
+                                                "Invalid JSON request body"
                                         )
                                 );
                             }
