@@ -162,7 +162,7 @@ Response:
 - As a user, I want to be able to pick or create a trainingsession on a calendar.
 - As a user, I want bodyparts in an exercise to be color coded.
 - As a user, I want to be able to write notes for my training sessions.
-- As a user, I want be able to mark if I've done my trianing or not.
+- As a user, I want be able to mark if I've done my training or not.
 - As a user, I want to be able to writes seperate notes from training sessions.
 - As a user, I want to be able to have several profiles which each their calendars and notes.
 - As a user, I want to be able to view RIR (Reps in reserve) and it should be calculated automatically.
