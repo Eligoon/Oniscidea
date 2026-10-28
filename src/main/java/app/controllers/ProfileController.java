@@ -19,23 +19,26 @@ public class ProfileController {
         ProfileDTO request =
                 ctx.bodyAsClass(ProfileDTO.class);
 
-        ProfileDTO profile =
-                profileService.createProfile(
-                        request.getName(),
-                        request.getUserId()
-                );
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
+
+        ProfileDTO profile = profileService.createProfile(
+                request.getName(),
+                authenticatedUserId
+        );
 
         ctx.status(201).json(profile);
     }
 
     public void getAll(Context ctx) {
+        Integer authenticatedUserId =
+                ctx.attribute("authenticatedUserId");
 
         List<ProfileDTO> profiles =
-                profileService.getAllProfiles();
+                profileService.getAllProfilesForUser(authenticatedUserId);
 
         ctx.json(profiles);
     }
-
     public void getById(Context ctx) {
 
         Integer id =
