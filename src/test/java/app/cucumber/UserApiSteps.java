@@ -16,6 +16,8 @@ import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.Assertions;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.time.ZonedDateTime;
+
 import static io.restassured.RestAssured.given;
 
 public class UserApiSteps {
@@ -53,6 +55,18 @@ public class UserApiSteps {
                     @Override
                     public String createCalendar(Integer userId, String calendarName) {
                         return "test-calendar-" + userId;
+                    }
+
+                    @Override
+                    public String createEvent(
+                            Integer userId,
+                            String googleCalendarId,
+                            String title,
+                            String description,
+                            ZonedDateTime start,
+                            ZonedDateTime end
+                    ) {
+                        return "test-event-" + userId;
                     }
                 };
 
