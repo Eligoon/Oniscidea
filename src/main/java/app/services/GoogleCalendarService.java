@@ -297,6 +297,34 @@ public class GoogleCalendarService {
             ZonedDateTime start,
             ZonedDateTime end
     ) {
+        GoogleCalendarConnection connection = getConnection(userId);
+
+        updateEvent(
+                userId,
+                connection.getCalendarId(),
+                eventId,
+                title,
+                description,
+                start,
+                end
+        );
+    }
+
+    public void updateEvent(
+            Integer userId,
+            String googleCalendarId,
+            String eventId,
+            String title,
+            String description,
+            ZonedDateTime start,
+            ZonedDateTime end
+    ) {
+        if (googleCalendarId == null || googleCalendarId.isBlank()) {
+            throw new ValidationException(
+                    "Google Calendar ID is required"
+            );
+        }
+
         if (eventId == null || eventId.isBlank()) {
             throw new ValidationException(
                     "Google event ID is required"
@@ -311,19 +339,14 @@ public class GoogleCalendarService {
 
         validateTimes(start, end);
 
-        GoogleCalendarConnection connection =
-                getConnection(userId);
+        GoogleCalendarConnection connection = getConnection(userId);
 
         try {
             Calendar calendar = getCalendar(connection);
 
-            Event event =
-                    calendar.events()
-                            .get(
-                                    connection.getCalendarId(),
-                                    eventId
-                            )
-                            .execute();
+            Event event = calendar.events()
+                    .get(googleCalendarId, eventId)
+                    .execute();
 
             event.setSummary(title);
             event.setDescription(description);
@@ -331,11 +354,7 @@ public class GoogleCalendarService {
             event.setEnd(toEventDateTime(end));
 
             calendar.events()
-                    .update(
-                            connection.getCalendarId(),
-                            eventId,
-                            event
-                    )
+                    .update(googleCalendarId, eventId, event)
                     .execute();
 
         } catch (IOException e) {
@@ -351,23 +370,39 @@ public class GoogleCalendarService {
             Integer userId,
             String eventId
     ) {
+        GoogleCalendarConnection connection = getConnection(userId);
+
+        deleteEvent(
+                userId,
+                connection.getCalendarId(),
+                eventId
+        );
+    }
+
+    public void deleteEvent(
+            Integer userId,
+            String googleCalendarId,
+            String eventId
+    ) {
+        if (googleCalendarId == null || googleCalendarId.isBlank()) {
+            throw new ValidationException(
+                    "Google Calendar ID is required"
+            );
+        }
+
         if (eventId == null || eventId.isBlank()) {
             throw new ValidationException(
                     "Google event ID is required"
             );
         }
 
-        GoogleCalendarConnection connection =
-                getConnection(userId);
+        GoogleCalendarConnection connection = getConnection(userId);
 
         try {
             Calendar calendar = getCalendar(connection);
 
             calendar.events()
-                    .delete(
-                            connection.getCalendarId(),
-                            eventId
-                    )
+                    .delete(googleCalendarId, eventId)
                     .execute();
 
         } catch (IOException e) {

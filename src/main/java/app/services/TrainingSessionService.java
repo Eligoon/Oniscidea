@@ -230,6 +230,101 @@ public class TrainingSessionService {
                 authenticatedUserId
         );
 
+        TrainingCalendar oldCalendar =
+                trainingCalendarDAO.getById(
+                        session.getCalendar().getId()
+                );
+        String oldGoogleCalendarId =
+                oldCalendar.getGoogleCalendarId();
+        String newGoogleCalendarId =
+                calendar.getGoogleCalendarId();
+        String googleEventId = session.getGoogleEventId();
+
+        if (googleEventId != null && !googleEventId.isBlank()) {
+            if (oldGoogleCalendarId == null
+                    || oldGoogleCalendarId.isBlank()) {
+                throw new ValidationException(
+                        "Google Calendar ID is required to synchronize this event"
+                );
+            }
+
+            if (newGoogleCalendarId == null
+                    || newGoogleCalendarId.isBlank()) {
+                googleCalendarService.deleteEvent(
+                        authenticatedUserId,
+                        oldGoogleCalendarId,
+                        googleEventId
+                );
+                session.setGoogleEventId(null);
+            } else {
+                ZonedDateTime start = ZonedDateTime.of(
+                        trainingDate,
+                        startTime,
+                        ZoneId.of("Europe/Copenhagen")
+                );
+
+                ZonedDateTime end = ZonedDateTime.of(
+                        trainingDate,
+                        endTime,
+                        ZoneId.of("Europe/Copenhagen")
+                );
+
+                if (oldGoogleCalendarId.equals(newGoogleCalendarId)) {
+                    googleCalendarService.updateEvent(
+                            authenticatedUserId,
+                            newGoogleCalendarId,
+                            googleEventId,
+                            trainingProgram.getName(),
+                            null,
+                            start,
+                            end
+                    );
+                } else {
+                    String newGoogleEventId =
+                            googleCalendarService.createEvent(
+                                    authenticatedUserId,
+                                    newGoogleCalendarId,
+                                    trainingProgram.getName(),
+                                    null,
+                                    start,
+                                    end
+                            );
+
+                    googleCalendarService.deleteEvent(
+                            authenticatedUserId,
+                            oldGoogleCalendarId,
+                            googleEventId
+                    );
+
+                    session.setGoogleEventId(newGoogleEventId);
+                }
+            }
+        } else if (newGoogleCalendarId != null
+                && !newGoogleCalendarId.isBlank()) {
+            ZonedDateTime start = ZonedDateTime.of(
+                    trainingDate,
+                    startTime,
+                    ZoneId.of("Europe/Copenhagen")
+            );
+
+            ZonedDateTime end = ZonedDateTime.of(
+                    trainingDate,
+                    endTime,
+                    ZoneId.of("Europe/Copenhagen")
+            );
+
+            String newGoogleEventId = googleCalendarService.createEvent(
+                    authenticatedUserId,
+                    newGoogleCalendarId,
+                    trainingProgram.getName(),
+                    null,
+                    start,
+                    end
+            );
+
+            session.setGoogleEventId(newGoogleEventId);
+        }
+
         session.update(
                 trainingDate,
                 startTime,
@@ -262,6 +357,27 @@ public class TrainingSessionService {
                 trainingSessionDAO.getById(id);
 
         ensureSessionOwnership(session, authenticatedUserId);
+
+        String googleEventId = session.getGoogleEventId();
+        TrainingCalendar calendar =
+                trainingCalendarDAO.getById(
+                        session.getCalendar().getId()
+                );
+        String googleCalendarId = calendar.getGoogleCalendarId();
+
+        if (googleEventId != null && !googleEventId.isBlank()) {
+            if (googleCalendarId == null || googleCalendarId.isBlank()) {
+                throw new ValidationException(
+                        "Google Calendar ID is required to delete this event"
+                );
+            }
+
+            googleCalendarService.deleteEvent(
+                    authenticatedUserId,
+                    googleCalendarId,
+                    googleEventId
+            );
+        }
 
         trainingSessionDAO.delete(id);
     }
