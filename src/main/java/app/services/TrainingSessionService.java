@@ -14,6 +14,8 @@ import app.exceptions.ValidationException;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public class TrainingSessionService {
@@ -22,17 +24,20 @@ public class TrainingSessionService {
     private final TrainingCalendarDAO trainingCalendarDAO;
     private final TrainingProgramDAO trainingProgramDAO;
     private final ProfileDAO profileDAO;
+    private final GoogleCalendarService googleCalendarService;
 
     public TrainingSessionService(
             TrainingSessionDAO trainingSessionDAO,
             TrainingCalendarDAO trainingCalendarDAO,
             TrainingProgramDAO trainingProgramDAO,
-            ProfileDAO profileDAO
+            ProfileDAO profileDAO,
+            GoogleCalendarService googleCalendarService
     ) {
         this.trainingSessionDAO = trainingSessionDAO;
         this.trainingCalendarDAO = trainingCalendarDAO;
         this.trainingProgramDAO = trainingProgramDAO;
         this.profileDAO = profileDAO;
+        this.googleCalendarService = googleCalendarService;
     }
 
     public TrainingSessionDTO createTrainingSession(
@@ -76,6 +81,34 @@ public class TrainingSessionService {
 
         TrainingSession created =
                 trainingSessionDAO.create(session);
+
+        if (calendar.getGoogleCalendarId() != null
+                && !calendar.getGoogleCalendarId().isBlank()) {
+
+            ZonedDateTime start = ZonedDateTime.of(
+                    trainingDate,
+                    startTime,
+                    ZoneId.of("Europe/Copenhagen")
+            );
+
+            ZonedDateTime end = ZonedDateTime.of(
+                    trainingDate,
+                    endTime,
+                    ZoneId.of("Europe/Copenhagen")
+            );
+
+            String googleEventId = googleCalendarService.createEvent(
+                    authenticatedUserId,
+                    calendar.getGoogleCalendarId(),
+                    trainingProgram.getName(),
+                    null,
+                    start,
+                    end
+            );
+
+            created.setGoogleEventId(googleEventId);
+            created = trainingSessionDAO.update(created);
+        }
 
         return toDTO(created);
     }
