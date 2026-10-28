@@ -102,6 +102,27 @@ public class ProfileDAO implements IDAO<Profile, Integer> {
         }
     }
 
+    public List<Profile> getAllByUserId(Integer userId) {
+        if (userId == null) {
+            throw new ValidationException("User id is required");
+        }
+
+        try (EntityManager em = emf.createEntityManager()) {
+            try {
+                TypedQuery<Profile> query = em.createQuery(
+                        "SELECT p FROM Profile p WHERE p.user.id = :userId",
+                        Profile.class
+                );
+
+                query.setParameter("userId", userId);
+                return query.getResultList();
+
+            } catch (PersistenceException e) {
+                throw new DatabaseException("Get user profiles failed", e);
+            }
+        }
+    }
+
     @Override
     public Profile update(Profile profile) {
         if (profile == null || profile.getId() == null) {
