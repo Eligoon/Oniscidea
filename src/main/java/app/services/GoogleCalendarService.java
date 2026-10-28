@@ -141,6 +141,7 @@ public class GoogleCalendarService {
     }
 
 
+
     public String createCalendar(Integer userId, String calendarName) {
         if (calendarName == null || calendarName.isBlank()) {
             throw new ValidationException("Calendar name is required");
@@ -160,6 +161,15 @@ public class GoogleCalendarService {
                             .insert(newCalendar)
                             .execute();
 
+            if (createdCalendar == null
+                    || createdCalendar.getId() == null
+                    || createdCalendar.getId().isBlank()) {
+                throw new ApiException(
+                        500,
+                        "Google Calendar was created without returning a calendar ID"
+                );
+            }
+
             return createdCalendar.getId();
 
         } catch (IOException e) {
@@ -170,6 +180,7 @@ public class GoogleCalendarService {
             );
         }
     }
+
 
 
     public String createEvent(
