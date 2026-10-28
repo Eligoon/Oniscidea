@@ -70,20 +70,36 @@ public class TrainingSessionService {
                 authenticatedUserId
         );
 
-        TrainingSession session =
-                new TrainingSession(
-                        trainingDate,
-                        startTime,
-                        endTime,
-                        calendar,
-                        trainingProgram
-                );
+        TrainingSession session = new TrainingSession(
+                trainingDate,
+                startTime,
+                endTime,
+                calendar,
+                trainingProgram
+        );
 
         TrainingSession created =
                 trainingSessionDAO.create(session);
 
-        if (calendar.getGoogleCalendarId() != null
-                && !calendar.getGoogleCalendarId().isBlank()) {
+        // Diagnostic logging: check the Google Calendar ID loaded by Hibernate.
+        String googleCalendarId = calendar.getGoogleCalendarId();
+
+        System.out.println(
+                "[Google Calendar] Calendar ID for training calendar "
+                        + calendarId + ": "
+                        + (googleCalendarId == null
+                        || googleCalendarId.isBlank()
+                        ? "<null or blank>"
+                        : "<present>")
+        );
+
+        if (googleCalendarId != null
+                && !googleCalendarId.isBlank()) {
+
+            System.out.println(
+                    "[Google Calendar] Creating event for training session "
+                            + created.getId()
+            );
 
             ZonedDateTime start = ZonedDateTime.of(
                     trainingDate,
@@ -99,15 +115,35 @@ public class TrainingSessionService {
 
             String googleEventId = googleCalendarService.createEvent(
                     authenticatedUserId,
-                    calendar.getGoogleCalendarId(),
+                    googleCalendarId,
                     trainingProgram.getName(),
                     null,
                     start,
                     end
             );
 
+            System.out.println(
+                    "[Google Calendar] Event creation returned an ID: "
+                            + (googleEventId != null
+                            && !googleEventId.isBlank())
+            );
+
             created.setGoogleEventId(googleEventId);
+
             created = trainingSessionDAO.update(created);
+
+            System.out.println(
+                    "[Google Calendar] Training session "
+                            + created.getId()
+                            + " updated with Google event ID: "
+                            + (created.getGoogleEventId() != null
+                            && !created.getGoogleEventId().isBlank())
+            );
+        } else {
+            System.out.println(
+                    "[Google Calendar] Event creation skipped because "
+                            + "the calendar ID is missing."
+            );
         }
 
         return toDTO(created);
