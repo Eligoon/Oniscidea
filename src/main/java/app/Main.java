@@ -38,6 +38,21 @@ public class Main {
     public static Javalin createApp(
             EntityManagerFactory emf
     ) {
+        GoogleCalendarConnectionDAO googleCalendarConnectionDAO =
+                new GoogleCalendarConnectionDAO(emf);
+
+        GoogleCalendarService googleCalendarService =
+                new GoogleCalendarService(
+                        googleCalendarConnectionDAO
+                );
+
+        return createApp(emf, googleCalendarService);
+    }
+
+    public static Javalin createApp(
+            EntityManagerFactory emf,
+            GoogleCalendarService googleCalendarService
+    ) {
 
         // User
         UserDAO userDAO =
@@ -144,11 +159,6 @@ public class Main {
                 new GoogleOAuthService(
                         googleCalendarConnectionDAO,
                         userDAO
-                );
-
-        GoogleCalendarService googleCalendarService =
-                new GoogleCalendarService(
-                        googleCalendarConnectionDAO
                 );
 
         GoogleCalendarExecutor googleCalendarExecutor =
