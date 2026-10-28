@@ -2,6 +2,8 @@ package app.cucumber;
 
 import app.Main;
 import app.config.HibernateConfig;
+import app.daos.GoogleCalendarConnectionDAO;
+import app.services.GoogleCalendarService;
 import io.cucumber.java.AfterAll;
 import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.And;
@@ -44,8 +46,17 @@ public class UserApiSteps {
                         postgres.getPassword()
                 );
 
-        app =
-                Main.createApp(emf);
+        GoogleCalendarService googleCalendarService =
+                new GoogleCalendarService(
+                        new GoogleCalendarConnectionDAO(emf)
+                ) {
+                    @Override
+                    public String createCalendar(Integer userId, String calendarName) {
+                        return "test-calendar-" + userId;
+                    }
+                };
+
+        app = Main.createApp(emf, googleCalendarService);
 
         app.start(7071);
     }
