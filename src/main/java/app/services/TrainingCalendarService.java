@@ -32,21 +32,16 @@ public class TrainingCalendarService {
             Integer authenticatedUserId
     ) {
         if (name == null || name.isBlank()) {
-            throw new ValidationException(
-                    "Calendar name is required"
-            );
+            throw new ValidationException("Calendar name is required");
         }
 
         if (profileId == null) {
-            throw new ValidationException(
-                    "Profile id is required"
-            );
+            throw new ValidationException("Profile id is required");
         }
 
         requireAuthenticatedUser(authenticatedUserId);
 
-        Profile profile =
-                profileDAO.getById(profileId);
+        Profile profile = profileDAO.getById(profileId);
 
         if (!profile.getUser().getId().equals(authenticatedUserId)) {
             throw new ApiException(
@@ -55,22 +50,18 @@ public class TrainingCalendarService {
             );
         }
 
-        TrainingCalendar calendar =
-                new TrainingCalendar(
-                        name,
-                        profile
-                );
-
         String googleCalendarId =
                 googleCalendarService.createCalendar(
                         authenticatedUserId,
                         name
                 );
 
+        TrainingCalendar calendar =
+                new TrainingCalendar(name, profile);
+
         calendar.setGoogleCalendarId(googleCalendarId);
 
-        TrainingCalendar created =
-                trainingCalendarDAO.create(calendar);
+        TrainingCalendar created = trainingCalendarDAO.create(calendar);
 
         return toDTO(created);
     }
@@ -80,16 +71,12 @@ public class TrainingCalendarService {
             Integer authenticatedUserId
     ) {
         if (id == null) {
-            throw new ValidationException(
-                    "Calendar id is required"
-            );
+            throw new ValidationException("Calendar id is required");
         }
 
         requireAuthenticatedUser(authenticatedUserId);
 
-        TrainingCalendar calendar =
-                trainingCalendarDAO.getById(id);
-
+        TrainingCalendar calendar = trainingCalendarDAO.getById(id);
         ensureOwnership(calendar, authenticatedUserId);
 
         return toDTO(calendar);
@@ -100,14 +87,8 @@ public class TrainingCalendarService {
     ) {
         requireAuthenticatedUser(authenticatedUserId);
 
-        List<TrainingCalendar> calendars =
-                trainingCalendarDAO.getAll();
-
-        return calendars.stream()
-                .filter(calendar -> isOwnedByUser(
-                        calendar,
-                        authenticatedUserId
-                ))
+        return trainingCalendarDAO.getAll().stream()
+                .filter(calendar -> isOwnedByUser(calendar, authenticatedUserId))
                 .map(this::toDTO)
                 .toList();
     }
@@ -118,22 +99,16 @@ public class TrainingCalendarService {
             Integer authenticatedUserId
     ) {
         if (id == null) {
-            throw new ValidationException(
-                    "Calendar id is required"
-            );
+            throw new ValidationException("Calendar id is required");
         }
 
         if (name == null || name.isBlank()) {
-            throw new ValidationException(
-                    "Calendar name is required"
-            );
+            throw new ValidationException("Calendar name is required");
         }
 
         requireAuthenticatedUser(authenticatedUserId);
 
-        TrainingCalendar existing =
-                trainingCalendarDAO.getById(id);
-
+        TrainingCalendar existing = trainingCalendarDAO.getById(id);
         ensureOwnership(existing, authenticatedUserId);
 
         TrainingCalendar updatedCalendar =
@@ -145,9 +120,7 @@ public class TrainingCalendarService {
                         .build();
 
         TrainingCalendar updated =
-                trainingCalendarDAO.update(
-                        updatedCalendar
-                );
+                trainingCalendarDAO.update(updatedCalendar);
 
         return toDTO(updated);
     }
@@ -157,29 +130,20 @@ public class TrainingCalendarService {
             Integer authenticatedUserId
     ) {
         if (id == null) {
-            throw new ValidationException(
-                    "Calendar id is required"
-            );
+            throw new ValidationException("Calendar id is required");
         }
 
         requireAuthenticatedUser(authenticatedUserId);
 
-        TrainingCalendar calendar =
-                trainingCalendarDAO.getById(id);
-
+        TrainingCalendar calendar = trainingCalendarDAO.getById(id);
         ensureOwnership(calendar, authenticatedUserId);
 
         trainingCalendarDAO.delete(id);
     }
 
-    private void requireAuthenticatedUser(
-            Integer authenticatedUserId
-    ) {
+    private void requireAuthenticatedUser(Integer authenticatedUserId) {
         if (authenticatedUserId == null) {
-            throw new ApiException(
-                    401,
-                    "Authentication is required"
-            );
+            throw new ApiException(401, "Authentication is required");
         }
     }
 
@@ -187,11 +151,7 @@ public class TrainingCalendarService {
             TrainingCalendar calendar,
             Integer authenticatedUserId
     ) {
-        Profile profile =
-                profileDAO.getById(
-                        calendar.getProfile().getId()
-                );
-
+        Profile profile = profileDAO.getById(calendar.getProfile().getId());
         return profile.getUser().getId().equals(authenticatedUserId);
     }
 
@@ -207,9 +167,7 @@ public class TrainingCalendarService {
         }
     }
 
-    private TrainingCalendarDTO toDTO(
-            TrainingCalendar calendar
-    ) {
+    private TrainingCalendarDTO toDTO(TrainingCalendar calendar) {
         return new TrainingCalendarDTO(
                 calendar.getId(),
                 calendar.getName(),
