@@ -1,4 +1,3 @@
-
 package app.services;
 
 import app.daos.ProfileDAO;
@@ -15,13 +14,16 @@ public class TrainingCalendarService {
 
     private final TrainingCalendarDAO trainingCalendarDAO;
     private final ProfileDAO profileDAO;
+    private final GoogleCalendarService googleCalendarService;
 
     public TrainingCalendarService(
             TrainingCalendarDAO trainingCalendarDAO,
-            ProfileDAO profileDAO
+            ProfileDAO profileDAO,
+            GoogleCalendarService googleCalendarService
     ) {
         this.trainingCalendarDAO = trainingCalendarDAO;
         this.profileDAO = profileDAO;
+        this.googleCalendarService = googleCalendarService;
     }
 
     public TrainingCalendarDTO createTrainingCalendar(
@@ -58,6 +60,14 @@ public class TrainingCalendarService {
                         name,
                         profile
                 );
+
+        String googleCalendarId =
+                googleCalendarService.createCalendar(
+                        authenticatedUserId,
+                        name
+                );
+
+        calendar.setGoogleCalendarId(googleCalendarId);
 
         TrainingCalendar created =
                 trainingCalendarDAO.create(calendar);

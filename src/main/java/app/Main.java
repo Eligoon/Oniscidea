@@ -190,7 +190,8 @@ public class Main {
         TrainingCalendarService trainingCalendarService =
                 new TrainingCalendarService(
                         trainingCalendarDAO,
-                        profileDAO
+                        profileDAO,
+                        googleCalendarService
                 );
 
         TrainingCalendarController trainingCalendarController =
