@@ -190,6 +190,17 @@ public class ProfileService {
         profileDAO.delete(profileId);
     }
 
+    public List<ProfileDTO> getAllProfilesForUser(Integer userId) {
+        if (userId == null) {
+            throw new ValidationException("User id is required");
+        }
+
+        return profileDAO.getAllByUserId(userId)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
     private ProfileDTO toDTO(Profile profile) {
 
         return new ProfileDTO(
