@@ -230,6 +230,65 @@ public class GoogleCalendarService {
         }
     }
 
+
+    public String createEvent(
+            Integer userId,
+            String googleCalendarId,
+            String title,
+            String description,
+            ZonedDateTime start,
+            ZonedDateTime end
+    ) {
+        if (googleCalendarId == null || googleCalendarId.isBlank()) {
+            throw new ValidationException(
+                    "Google Calendar ID is required"
+            );
+        }
+
+        if (title == null || title.isBlank()) {
+            throw new ValidationException(
+                    "Event title is required"
+            );
+        }
+
+        validateTimes(start, end);
+
+        GoogleCalendarConnection connection = getConnection(userId);
+
+        try {
+            Calendar calendar = getCalendar(connection);
+
+            Event event = new Event()
+                    .setSummary(title)
+                    .setDescription(description)
+                    .setStart(toEventDateTime(start))
+                    .setEnd(toEventDateTime(end));
+
+            Event createdEvent = calendar.events()
+                    .insert(googleCalendarId, event)
+                    .execute();
+
+            if (createdEvent == null
+                    || createdEvent.getId() == null
+                    || createdEvent.getId().isBlank()) {
+                throw new ApiException(
+                        500,
+                        "Google Calendar event was created without returning an event ID"
+                );
+            }
+
+            return createdEvent.getId();
+
+        } catch (IOException e) {
+            throw new ApiException(
+                    500,
+                    "Could not create Google Calendar event",
+                    e
+            );
+        }
+    }
+
+
     public void updateEvent(
             Integer userId,
             String eventId,
