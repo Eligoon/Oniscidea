@@ -187,7 +187,8 @@ public class Main {
                         trainingSessionDAO,
                         trainingCalendarDAO,
                         trainingProgramDAO,
-                        profileDAO
+                        profileDAO,
+                        googleCalendarService
                 );
 
         TrainingSessionController trainingSessionController =
