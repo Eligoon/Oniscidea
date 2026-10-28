@@ -140,6 +140,38 @@ public class GoogleCalendarService {
         }
     }
 
+
+    public String createCalendar(Integer userId, String calendarName) {
+        if (calendarName == null || calendarName.isBlank()) {
+            throw new ValidationException("Calendar name is required");
+        }
+
+        GoogleCalendarConnection connection = getConnection(userId);
+
+        try {
+            Calendar calendar = getCalendar(connection);
+
+            com.google.api.services.calendar.model.Calendar newCalendar =
+                    new com.google.api.services.calendar.model.Calendar()
+                            .setSummary(calendarName);
+
+            com.google.api.services.calendar.model.Calendar createdCalendar =
+                    calendar.calendars()
+                            .insert(newCalendar)
+                            .execute();
+
+            return createdCalendar.getId();
+
+        } catch (IOException e) {
+            throw new ApiException(
+                    500,
+                    "Could not create Google Calendar",
+                    e
+            );
+        }
+    }
+
+
     public String createEvent(
             Integer userId,
             String title,
